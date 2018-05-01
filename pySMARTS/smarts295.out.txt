@@ -1,0 +1,79 @@
+
+******************   SMARTS, version 2.9.5   *******************
+
+ Simple Model of the Atmospheric Radiative Transfer of Sunshine
+     Chris A. Gueymard, Solar Consulting Services
+                    December 2005
+
+    This model is documented in FSEC Report PF-270-95
+ and in a Solar Energy paper, vol. 71, No.5, 325-346 (2001)
+
+ NOTE: These references describe v. 2.8 or earlier!!!
+ See the User's Manual for details on the considerable 
+ changes that followed...
+
+****************************************************************
+
+   Reference for this run: USSA_AOD=0.084_ASTM_G173                                        
+
+----------------------------------------------------------------
+
+* ATMOSPHERE : USSA        AEROSOL TYPE: S&F_TROPO                                                       
+
+* INPUTS:
+     Pressure (mb) =   25.490   Ground Altitude (km) =   0.0000
+     Height above ground (km) =  25.0000
+     Relative Humidity (%) =  0.214   Precipitable Water (cm) =  0.0001
+     Ozone (atm-cm) = 0.1247 or 124.7 Dobson Units
+   AEROSOLS:  Optical Depth at 500 nm = 0.0010      Optical depth at 550 nm = 0.0009
+       Angstrom's Beta = 0.0004       Schuepp's B = 0.0004
+     Meteorological Range (km) =    0.0   Visibility (km) =    0.0
+     Alpha1 = 1.0550  Alpha2 = 1.3680   Mean Angstrom's Alpha = 1.2115
+     Season = SPRING/SUMMER           
+
+* TEMPERATURES:
+     Instantaneous at site's altitude = 221.6 K
+     Daily average (reference) at site's altitude = 221.6 K
+     Stratospheric Ozone and NO2 (effective) = 230.5 K
+
+** WARNING #20*********
+\\ Receiver is at more than 6 km above sea level, hence the aerosol optical depth has been fixed to a default value, dependent only on altitude.
+
+** WARNING #21*********
+\\ Receiver is at more than 0,5 km above ground, hence the calculation of the reflected irradiance from the ground to the tilted plane is not accurate.
+
+
+The following spectral variables will be output to file: smarts295.ext.txt       
+
+ * Direct_normal_irradiance
+ * Difuse_horizn_irradiance
+ * Global_horizn_irradiance
+ * Direct_horizn_irradiance
+ * Direct_tilted_irradiance
+ * Difuse_tilted_irradiance
+ * Global_tilted_irradiance
+ * Beam_normal_+circumsolar
+ * Difuse_horiz-circumsolar
+
+
+      Spectral ZONAL albedo data: SOIL                    
+      with a reflection process: NON_LAMBERTIAN          
+
+
+* GEOMETRY (half-angles) OF THE SIMULATED RADIOMETER (deg.):
+   Slope =  0.00      Aperture =  2.90   Limit =  0.00
+
+** WARNING #11*********
+\\ The radiometer's Slope and Limit angles are not provided.
+\\ Circumsolar calculations will therefore be performed for
+\\ an average geometry corresponding to the Aperture angle.
+
+
+
+      Spectral LOCAL albedo data: SOIL                    
+      with a reflection process: NON_LAMBERTIAN          
+
+
+
+
+** ERROR #7 *** Value of Zenit = 156.44 is > 90 deg. RUN ABORTED!

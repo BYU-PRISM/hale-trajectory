@@ -1,0 +1,641 @@
+386|LINK: 9.1fix1 -- Copyright (C) 1986-98 Phar Lap Software, Inc.
+
+
+Linking for 32-bit protected mode
+
+
+Command line switches:
+
+-LIBPATH E:\LF9045\Lib
+@C:\WINDOWS\TEMP\LFT5.
+"E:\LF9045\BIN\lfinitw.obj"
+"E:\LF9045\BIN\ptest.obj"
+"e:\SMART295UPDATE\SMARTS_295_PC\Source_code\smarts295.obj"
+-lib import1.lib import2.lib import3.lib
+-lib lf90w.lib
+-lib lf90wio.lib
+-stack 20000h
+-subsystem console
+-start mainCRTStartup
+-exeformat portexe
+-stub lfdummy.exe
+-offset 10000h
+-order class CODE
+-order class DATA
+-order class CONST
+-order class BSS
+-order class STACK
+-order class RSRC
+-empty class BSS
+-exe "e:\SMART295UPDATE\SMARTS_295_PC\Source_code\smarts295.exe"
+-twocase
+
+
+Input module(s):
+
+Stub "lfdummy" from file "E:\LF9045\BIN\lfdummy.exe"  [Wed May 22 12:13:04 1996].
+"lfinitw" from file "E:\LF9045\BIN\lfinitw.obj"  [Wed Apr 08 11:58:38 1998].
+"pentest" from file "E:\LF9045\BIN\ptest.obj"  [Sat Apr 25 14:18:30 1998].
+"smarts295" from file "e:\SMART295UPDATE\SMARTS_295_PC\Source_code\smarts295.obj"  [Thu May 03 17:02:26 2007].
+"ExitProcess" from file "E:\LF9045\Lib\import3.lib"  [Wed Jul 24 13:09:26 1996].
+"facos" from file "E:\LF9045\Lib\lf90w.lib"  [Wed Nov 25 14:31:58 1998].
+"fasin" from file "E:\LF9045\Lib\lf90w.lib"  [Wed Nov 25 14:31:58 1998].
+"fatan2" from file "E:\LF9045\Lib\lf90w.lib"  [Wed Nov 25 14:31:58 1998].
+"fcos" from file "E:\LF9045\Lib\lf90w.lib"  [Wed Nov 25 14:31:58 1998].
+"fexp" from file "E:\LF9045\Lib\lf90w.lib"  [Wed Nov 25 14:31:58 1998].
+"flog" from file "E:\LF9045\Lib\lf90w.lib"  [Wed Nov 25 14:31:58 1998].
+"fsin" from file "E:\LF9045\Lib\lf90w.lib"  [Wed Nov 25 14:31:58 1998].
+"ftan" from file "E:\LF9045\Lib\lf90w.lib"  [Wed Nov 25 14:31:58 1998].
+"pow_dd_v" from file "E:\LF9045\Lib\lf90w.lib"  [Wed Nov 25 14:31:58 1998].
+"pow_di_v" from file "E:\LF9045\Lib\lf90w.lib"  [Wed Nov 25 14:31:58 1998].
+"INDEX" from file "E:\LF9045\Lib\lf90w.lib"  [Wed Nov 25 14:31:58 1998].
+"LFINITWC" from file "E:\LF9045\Lib\lf90w.lib"  [Wed Nov 25 14:31:58 1998].
+"BC_DEFS" from file "E:\LF9045\Lib\lf90w.lib"  [Wed Nov 25 14:31:58 1998].
+"pow" from file "E:\LF9045\Lib\lf90w.lib"  [Wed Nov 25 14:31:58 1998].
+"acos" from file "E:\LF9045\Lib\lf90w.lib"  [Wed Nov 25 14:31:58 1998].
+"asin" from file "E:\LF9045\Lib\lf90w.lib"  [Wed Nov 25 14:31:58 1998].
+"atan2" from file "E:\LF9045\Lib\lf90w.lib"  [Wed Nov 25 14:31:58 1998].
+"exp" from file "E:\LF9045\Lib\lf90w.lib"  [Wed Nov 25 14:31:58 1998].
+"f_cos" from file "E:\LF9045\Lib\lf90w.lib"  [Wed Nov 25 14:31:58 1998].
+"f_sin" from file "E:\LF9045\Lib\lf90w.lib"  [Wed Nov 25 14:31:58 1998].
+"f_tan" from file "E:\LF9045\Lib\lf90w.lib"  [Wed Nov 25 14:31:58 1998].
+"log" from file "E:\LF9045\Lib\lf90w.lib"  [Wed Nov 25 14:31:58 1998].
+"ERRNO" from file "E:\LF9045\Lib\lf90w.lib"  [Wed Nov 25 14:31:58 1998].
+"CSTRING" from file "E:\LF9045\Lib\lf90w.lib"  [Wed Nov 25 14:31:58 1998].
+"winstack" from file "E:\LF9045\Lib\lf90w.lib"  [Wed Nov 25 14:31:58 1998].
+"pow_tbl1" from file "E:\LF9045\Lib\lf90w.lib"  [Wed Nov 25 14:31:58 1998].
+"pow_tbl2" from file "E:\LF9045\Lib\lf90w.lib"  [Wed Nov 25 14:31:58 1998].
+"CLOSE" from file "E:\LF9045\Lib\lf90wio.lib"  [Wed May 12 11:14:26 1999].
+"EREPORT" from file "E:\LF9045\Lib\lf90wio.lib"  [Wed May 12 11:14:26 1999].
+"FCHEQS" from file "E:\LF9045\Lib\lf90wio.lib"  [Wed May 12 11:14:26 1999].
+"FCHCMP" from file "E:\LF9045\Lib\lf90wio.lib"  [Wed May 12 11:14:26 1999].
+"FMTIN" from file "E:\LF9045\Lib\lf90wio.lib"  [Wed May 12 11:14:26 1999].
+"fmtin2" from file "E:\LF9045\Lib\lf90wio.lib"  [Wed May 12 11:14:26 1999].
+"FMTOT" from file "E:\LF9045\Lib\lf90wio.lib"  [Wed May 12 11:14:26 1999].
+"fmtot2" from file "E:\LF9045\Lib\lf90wio.lib"  [Wed May 12 11:14:26 1999].
+"IOMISC" from file "E:\LF9045\Lib\lf90wio.lib"  [Wed May 12 11:14:26 1999].
+"MINIMUM" from file "E:\LF9045\Lib\lf90wio.lib"  [Wed May 12 11:14:26 1999].
+"OPEN" from file "E:\LF9045\Lib\lf90wio.lib"  [Wed May 12 11:14:26 1999].
+"REWIND" from file "E:\LF9045\Lib\lf90wio.lib"  [Wed May 12 11:14:26 1999].
+"chkstack" from file "E:\LF9045\Lib\lf90wio.lib"  [Wed May 12 11:14:26 1999].
+"LF_LOW" from file "E:\LF9045\Lib\lf90wio.lib"  [Wed May 12 11:14:26 1999].
+"LFCTYPE" from file "E:\LF9045\Lib\lf90wio.lib"  [Wed May 12 11:14:26 1999].
+"FHEAP" from file "E:\LF9045\Lib\lf90wio.lib"  [Wed May 12 11:14:26 1999].
+"initfpu" from file "E:\LF9045\Lib\lf90wio.lib"  [Wed May 12 11:14:26 1999].
+"LFINITWD" from file "E:\LF9045\Lib\lf90wio.lib"  [Wed May 12 11:14:26 1999].
+"errpub" from file "E:\LF9045\Lib\lf90wio.lib"  [Wed May 12 11:14:26 1999].
+"FLG2RT" from file "E:\LF9045\Lib\lf90wio.lib"  [Wed May 12 11:14:26 1999].
+"AFMTIO" from file "E:\LF9045\Lib\lf90wio.lib"  [Wed May 12 11:14:26 1999].
+"FCB" from file "E:\LF9045\Lib\lf90wio.lib"  [Wed May 12 11:14:26 1999].
+"FMTIO" from file "E:\LF9045\Lib\lf90wio.lib"  [Wed May 12 11:14:26 1999].
+"location" from file "E:\LF9045\Lib\lf90wio.lib"  [Wed May 12 11:14:26 1999].
+"PAUSE" from file "E:\LF9045\Lib\lf90wio.lib"  [Wed May 12 11:14:26 1999].
+"MEMORY" from file "E:\LF9045\Lib\lf90wio.lib"  [Wed May 12 11:14:26 1999].
+"COREIO" from file "E:\LF9045\Lib\lf90wio.lib"  [Wed May 12 11:14:26 1999].
+"LFGETENV" from file "E:\LF9045\Lib\lf90wio.lib"  [Wed May 12 11:14:26 1999].
+"mw_asm0" from file "E:\LF9045\Lib\lf90wio.lib"  [Wed May 12 11:14:26 1999].
+"log10" from file "E:\LF9045\Lib\lf90wio.lib"  [Wed May 12 11:14:26 1999].
+"lfsold" from file "E:\LF9045\Lib\lf90wio.lib"  [Wed May 12 11:14:26 1999].
+"LFEXIT" from file "E:\LF9045\Lib\lf90wio.lib"  [Wed May 12 11:14:26 1999].
+"ADIRECT" from file "E:\LF9045\Lib\lf90wio.lib"  [Wed May 12 11:14:26 1999].
+"FMTNOMOD" from file "E:\LF9045\Lib\lf90wio.lib"  [Wed May 12 11:14:26 1999].
+"GetStockObject" from file "E:\LF9045\Lib\import1.lib"  [Wed Jul 24 13:09:26 1996].
+"DefWindowProcA" from file "E:\LF9045\Lib\import2.lib"  [Wed Jul 24 13:09:26 1996].
+"DestroyWindow" from file "E:\LF9045\Lib\import2.lib"  [Wed Jul 24 13:09:26 1996].
+"LoadCursorA" from file "E:\LF9045\Lib\import2.lib"  [Wed Jul 24 13:09:26 1996].
+"LoadIconA" from file "E:\LF9045\Lib\import2.lib"  [Wed Jul 24 13:09:26 1996].
+"MessageBoxA" from file "E:\LF9045\Lib\import2.lib"  [Wed Jul 24 13:09:26 1996].
+"PostQuitMessage" from file "E:\LF9045\Lib\import2.lib"  [Wed Jul 24 13:09:26 1996].
+"RegisterClassA" from file "E:\LF9045\Lib\import2.lib"  [Wed Jul 24 13:09:26 1996].
+"AllocConsole" from file "E:\LF9045\Lib\import3.lib"  [Wed Jul 24 13:09:26 1996].
+"CloseHandle" from file "E:\LF9045\Lib\import3.lib"  [Wed Jul 24 13:09:26 1996].
+"CreateFileA" from file "E:\LF9045\Lib\import3.lib"  [Wed Jul 24 13:09:26 1996].
+"DeleteFileA" from file "E:\LF9045\Lib\import3.lib"  [Wed Jul 24 13:09:26 1996].
+"FreeConsole" from file "E:\LF9045\Lib\import3.lib"  [Wed Jul 24 13:09:26 1996].
+"GetCommandLineA" from file "E:\LF9045\Lib\import3.lib"  [Wed Jul 24 13:09:26 1996].
+"GetCurrentDirectoryA" from file "E:\LF9045\Lib\import3.lib"  [Wed Jul 24 13:09:26 1996].
+"GetEnvironmentVariableA" from file "E:\LF9045\Lib\import3.lib"  [Wed Jul 24 13:09:26 1996].
+"GetFileSize" from file "E:\LF9045\Lib\import3.lib"  [Wed Jul 24 13:09:26 1996].
+"GetFileType" from file "E:\LF9045\Lib\import3.lib"  [Wed Jul 24 13:09:26 1996].
+"GetLastError" from file "E:\LF9045\Lib\import3.lib"  [Wed Jul 24 13:09:26 1996].
+"GetModuleFileNameA" from file "E:\LF9045\Lib\import3.lib"  [Wed Jul 24 13:09:26 1996].
+"GetModuleHandleA" from file "E:\LF9045\Lib\import3.lib"  [Wed Jul 24 13:09:26 1996].
+"GetProcessHeap" from file "E:\LF9045\Lib\import3.lib"  [Wed Jul 24 13:09:26 1996].
+"GetStartupInfoA" from file "E:\LF9045\Lib\import3.lib"  [Wed Jul 24 13:09:26 1996].
+"GetStdHandle" from file "E:\LF9045\Lib\import3.lib"  [Wed Jul 24 13:09:26 1996].
+"GetSystemTime" from file "E:\LF9045\Lib\import3.lib"  [Wed Jul 24 13:09:26 1996].
+"GetVersion" from file "E:\LF9045\Lib\import3.lib"  [Wed Jul 24 13:09:26 1996].
+"HeapAlloc" from file "E:\LF9045\Lib\import3.lib"  [Wed Jul 24 13:09:26 1996].
+"ReadConsoleA" from file "E:\LF9045\Lib\import3.lib"  [Wed Jul 24 13:09:26 1996].
+"ReadFile" from file "E:\LF9045\Lib\import3.lib"  [Wed Jul 24 13:09:26 1996].
+"SetEndOfFile" from file "E:\LF9045\Lib\import3.lib"  [Wed Jul 24 13:09:26 1996].
+"SetFilePointer" from file "E:\LF9045\Lib\import3.lib"  [Wed Jul 24 13:09:26 1996].
+"WriteFile" from file "E:\LF9045\Lib\import3.lib"  [Wed Jul 24 13:09:26 1996].
+"lstrlenA" from file "E:\LF9045\Lib\import3.lib"  [Wed Jul 24 13:09:26 1996].
+
+
+Segment map
+
+     Name         Group         Class     Type   Offset     Size
+------------  ------------  ------------  ----  --------  --------
+REAL STUB                                       00010000  0000036C
+PE HEADER                                       0001036C  000000F8
+OBJECT TABLE                                    00010464  000000F0
+_TEXT         CGROUP        CODE          PUB   00011000  000311D1
+.jdata                      CODE          PUB   000421E0  000000CC
+_DATA         DGROUP        DATA          PUB   000422AC  00011982
+_lc__FLG2RT   DGROUP        DATA          COM   00053C30  00000040
+_lc_MNPHFN    DGROUP        DATA          COM   00053C70  00000140
+_lc_COEF      DGROUP        DATA          COM   00053DB0  00000340
+CONST2        DGROUP        DATA          PUB   000540F0  00000000
+_data                       DATA          PUB   000540F0  00000C20
+CONST         DGROUP        CONST         PUB   00054D10  0000048A
+_BSS          DGROUP        BSS           PUB   0005519C  0001E3F8
+c_common      DGROUP        BSS           PUB   000735A0  00017850
+??stack                     STACK         STK   0008ADF0  00004000
+.idata                      IMPORTS       PUB   0008F000  000003C8
+.edata                      EXPORTS       PUB   00090000  00000C00
+.reloc                      RELOCS        PUB   00091000  00006800
+
+
+Portable .EXE (PE) Sections
+
+  Name    Address     Size    File Off  File Sz    Flags
+--------  --------  --------  --------  --------  --------
+CODE      00011000  0004419A  00000600  00044200  E0000020  
+.bss      00056000  00038DF0  00000000  00038E00  C0000080  
+.idata    0008F000  000003C8  00044800  00000400  C0000040  
+.edata    00090000  00000C00  00044C00  00000C00  C0000040  
+.reloc    00091000  00006800  00045800  00006800  42000040  
+$$DOSX    00098000  00000200  0004C000  00000200  42000040  
+
+
+Public symbols
+
+     Name       Value      Module        Segment      Size
+------------  --------  ------------  ------------  --------
+$$lfdummy     00000001                              
+ALBCHK        0002BB40  smarts295     _TEXT         
+ALBDAT        0002BD90  smarts295     _TEXT         
+ALBDOS        0002F1B0  smarts295     _TEXT         
+ALFA          0002F680  smarts295     _TEXT         
+AMZ           0002FC00  smarts295     _TEXT         
+AllocConsole  000421E6  AllocConsole  .jdata        IMPORT
+CIRCUM        0002FCD0  smarts295     _TEXT         
+CloseHandle   000421EC  CloseHandle   .jdata        IMPORT
+CreateFileA   000421F2  CreateFileA   .jdata        IMPORT
+DefWindowPr-  00042282  DefWindowPr-  .jdata        IMPORT
+DeleteFileA   000421F8  DeleteFileA   .jdata        IMPORT
+DestroyWind-  00042288  DestroyWind-  .jdata        IMPORT
+ExitProcess   000421FE  ExitProcess   .jdata        IMPORT
+FreeConsole   00042204  FreeConsole   .jdata        IMPORT
+GASES         000306C0  smarts295     _TEXT         
+GSCH2O        00030BE0  smarts295     _TEXT         
+GSCH4         00030B50  smarts295     _TEXT         
+GSCO          00030CA0  smarts295     _TEXT         
+GSHNO2        00030D30  smarts295     _TEXT         
+GSHNO3        00030DD0  smarts295     _TEXT         
+GSNO          00030EC0  smarts295     _TEXT         
+GSNO2         00030F50  smarts295     _TEXT         
+GSNO3         00031010  smarts295     _TEXT         
+GSO3U         000310D0  smarts295     _TEXT         
+GSSO2I        000312B0  smarts295     _TEXT         
+GSSO2U        000311F0  smarts295     _TEXT         
+GetCommandL-  0004220A  GetCommandL-  .jdata        IMPORT
+GetCurrentD-  00042210  GetCurrentD-  .jdata        IMPORT
+GetEnvironm-  00042216  GetEnvironm-  .jdata        IMPORT
+GetFileSize   0004221C  GetFileSize   .jdata        IMPORT
+GetFileType   00042222  GetFileType   .jdata        IMPORT
+GetLastError  00042228  GetLastError  .jdata        IMPORT
+GetModuleFi-  0004222E  GetModuleFi-  .jdata        IMPORT
+GetModuleHa-  00042234  GetModuleHa-  .jdata        IMPORT
+GetProcessH-  0004223A  GetProcessH-  .jdata        IMPORT
+GetStartupI-  00042240  GetStartupI-  .jdata        IMPORT
+GetStdHandle  00042246  GetStdHandle  .jdata        IMPORT
+GetStockObj-  000421E0  GetStockObj-  .jdata        IMPORT
+GetSystemTi-  0004224C  GetSystemTi-  .jdata        IMPORT
+GetVersion    00042252  GetVersion    .jdata        IMPORT
+HeapAlloc     00042258  HeapAlloc     .jdata        IMPORT
+INTERP        00031340  smarts295     _TEXT         
+LF90WndProc   0003F47E  LFINITWD      _TEXT         
+LoadCursorA   0004228E  LoadCursorA   .jdata        IMPORT
+LoadIconA     00042294  LoadIconA     .jdata        IMPORT
+MessageBoxA   0004229A  MessageBoxA   .jdata        IMPORT
+NDAY          000314D0  smarts295     _TEXT         
+OZON          00031670  smarts295     _TEXT         
+OZON2         00031BC0  smarts295     _TEXT         
+PHASE1        00031EE0  smarts295     _TEXT         
+PHASE2        000321B0  smarts295     _TEXT         
+PHDATA        000329B0  smarts295     _TEXT         
+PHF1          000329D0  smarts295     _TEXT         
+PostQuitMes-  000422A0  PostQuitMes-  .jdata        IMPORT
+REFATM        00032AA0  smarts295     _TEXT         
+ReadConsoleA  0004225E  ReadConsoleA  .jdata        IMPORT
+ReadFile      00042264  ReadFile      .jdata        IMPORT
+RegisterCla-  000422A6  RegisterCla-  .jdata        IMPORT
+SCANG         00033090  smarts295     _TEXT         
+SCANT         00033D10  smarts295     _TEXT         
+STEPS         000349E0  smarts295     _TEXT         
+SUNPSA        00034BC0  smarts295     _TEXT         
+SetEndOfFile  0004226A  SetEndOfFile  .jdata        IMPORT
+SetFilePoin-  00042270  SetFilePoin-  .jdata        IMPORT
+UVDAT         000356D0  smarts295     _TEXT         
+VISTAU        00035F20  smarts295     _TEXT         
+WinMainCRTS-  0001104A  lfinitw       _TEXT         
+WriteFile     00042276  WriteFile     .jdata        IMPORT
+_DLLEntryPo-  0003F1FC  LF_LOW        _TEXT         
+__initenv     00052918  LFINITWC      _DATA         
+_acmdln       00072988  LFINITWD      _BSS          
+_aenvptr      00052920  LFINITWC      _DATA         
+_amsg_exit    0003F1F7  LF_LOW        _TEXT         EXPORT
+_atexit       00011064  lfinitw       _TEXT         
+_environ      00052914  LFINITWC      _DATA         
+_ftol         0003F344  initfpu       _TEXT         
+_lc_COEF      00053DB0  smarts295     _lc_COEF      00000340
+_lc_MNPHFN    00053C70  smarts295     _lc_MNPHFN    00000140
+_lc_NUMBER    000735A0                c_common      00000010
+_lc_SOLAR1    000735B0                c_common      00003EB0
+_lc_SOLAR2    00077460                c_common      000138D0
+_lc_SOLAR3    0008AD30                c_common      000000C0
+_lc__FLG2RT   00053C30  smarts295     _lc__FLG2RT   
+_lf_7_close   0003D63E  MINIMUM       _TEXT         EXPORT
+_lf_7_open    00041850  COREIO        _TEXT         
+_lf_7_read    00041917  COREIO        _TEXT         
+_lf_7_write   000419B5  COREIO        _TEXT         
+_lf_EOL_FF    00038FCD  FMTIN         _TEXT         EXPORT
+_lf_Message-  0003F11A  LF_LOW        _TEXT         EXPORT
+_lf_WinMain   0003F388  LFINITWD      _TEXT         
+_lf___close   000418AB  COREIO        _TEXT         
+_lf__back1_-  0003CD2F  IOMISC        _TEXT         EXPORT
+_lf__drst     0003CE22  IOMISC        _TEXT         EXPORT
+_lf__gpvc     0003CC9D  IOMISC        _TEXT         EXPORT
+_lf__lseek    000418C6  COREIO        _TEXT         
+_lf__lsize    00041900  COREIO        _TEXT         
+_lf__prompt   0005314B  IOMISC        _DATA         
+_lf__unlink   000419F4  COREIO        _TEXT         
+_lf_a_fmt_o-  0003AC0D  FMTOT         _TEXT         
+_lf_absolut-  00037F2B  EREPORT       _TEXT         
+_lf_acos      00036EA0  acos          _TEXT         
+_lf_alloc_b-  0003D7ED  MINIMUM       _TEXT         EXPORT
+_lf_alocfcb   0003FB37  FCB           _TEXT         EXPORT
+_lf_altreta   0003F66F  errpub        _TEXT         
+_lf_app_name  0007254C  LF_LOW        _BSS          
+_lf_argc      00071A18  LFINITWC      _BSS          
+_lf_argv      00071A1C  LFINITWC      _BSS          
+_lf_ascii_t-  000398A0  fmtin2        _TEXT         
+_lf_ascii_t-  00038FEF  FMTIN         _TEXT         EXPORT
+_lf_asin      00036F20  asin          _TEXT         
+_lf_assign_-  0003F758  errpub        _TEXT         
+_lf_atan2     00036FA0  atan2         _TEXT         
+_lf_atexit_-  0003F1B3  LF_LOW        _TEXT         EXPORT
+_lf_bad_pen-  00052924  LFINITWC      _DATA         
+_lf_bottom_-  00011000  lfinitw       _TEXT         
+_lf_buffer_-  000723EC  LF_LOW        _BSS          
+_lf_calloc    000410A5  MEMORY        _TEXT         
+_lf_char_fr-  000390A3  FMTIN         _TEXT         
+_lf_check_f-  0003FC99  FCB           _TEXT         EXPORT
+_lf_check_p-  000407FA  FMTIO         _TEXT         EXPORT
+_lf_check_s-  0003EFD0  chkstack      _TEXT         
+_lf_chopfil   00041A0F  COREIO        _TEXT         
+_lf_class_n-  0007256A  LF_LOW        _BSS          
+_lf_clear_i-  0003F628  errpub        _TEXT         
+_lf_clenflag  00040EBA  FMTIO         _TEXT         EXPORT
+_lf_close     0003750C  CLOSE         _TEXT         EXPORT
+_lf_cmp_name  0003CAE6  IOMISC        _TEXT         EXPORT
+_lf_codeend   00053740  LFINITWD      _DATA         
+_lf_codesta-  0005373C  LFINITWD      _DATA         
+_lf_command-  00072588  LF_LOW        _BSS          
+_lf_command-  00053540  LF_LOW        _DATA         
+_lf_conflsh   0003D4DD  MINIMUM       _TEXT         EXPORT
+_lf_console-  00053532  LF_LOW        _DATA         
+_lf_console-  00053531  LF_LOW        _DATA         
+_lf_contact-  00052928  LFINITWC      _DATA         
+_lf_cos       00037140  f_cos         _TEXT         
+_lf_create_-  00041A48  COREIO        _TEXT         
+_lf_crrnt_c-  000538E7  FMTIO         _DATA         
+_lf_ctype_    000535C3  LFCTYPE       _DATA         
+_lf_curfcb    000531DC  MINIMUM       _DATA         
+_lf_dcode     00039039  FMTIN         _TEXT         EXPORT
+_lf_default-  000723E8  LF_LOW        _BSS          
+_lf_delfcb    0003D478  MINIMUM       _TEXT         EXPORT
+_lf_delimitr  0003A7D4  fmtin2        _TEXT         
+_lf_determi-  0003FD99  FMTIO         _TEXT         EXPORT
+_lf_display   00041025  PAUSE         _TEXT         EXPORT
+_lf_display-  0003F1E5  LF_LOW        _TEXT         EXPORT
+_lf_doinc0a   0003F6CB  errpub        _TEXT         
+_lf_dpowuw    0003C8F8  fmtot2        _TEXT         
+_lf_ebp_of_-  000531CC  MINIMUM       _DATA         
+_lf_eip_of_-  000531C8  MINIMUM       _DATA         
+_lf_emit_er-  00037874  EREPORT       _TEXT         EXPORT
+_lf_emit_me-  0003F02C  LF_LOW        _TEXT         EXPORT
+_lf_emit_me-  0003F07B  LF_LOW        _TEXT         EXPORT
+_lf_end_inp-  0004084B  FMTIO         _TEXT         EXPORT
+_lf_end_out-  000409A4  FMTIO         _TEXT         EXPORT
+_lf_ensure_-  00041AC1  COREIO        _TEXT         
+_lf_ensure_-  0003D238  IOMISC        _TEXT         EXPORT
+_lf_env_poi-  0005353C  LF_LOW        _DATA         
+_lf_err_fcb   000531D4  MINIMUM       _DATA         
+_lf_err_pos-  000531D0  MINIMUM       _DATA         
+_lf_errno     00052A94  ERRNO         _DATA         
+_lf_error_e-  00052BA4  EREPORT       _DATA         
+_lf_error_e-  00052BAC  EREPORT       _DATA         
+_lf_error_e-  00052BA8  EREPORT       _DATA         
+_lf_error_i-  0003F7BA  errpub        _TEXT         
+_lf_excepti-  00037F39  EREPORT       _TEXT         EXPORT
+_lf_exit      00041F70  LFEXIT        _TEXT         
+_lf_exit_fu-  00053544  LF_LOW        _DATA         
+_lf_exitdos   0003F159  LF_LOW        _TEXT         EXPORT
+_lf_exp       00036FE0  exp           _TEXT         
+_lf_f90_con-  00072428  LF_LOW        _BSS          
+_lf_fcalloc   0003F30F  FHEAP         _TEXT         
+_lf_fcb_list  000531D8  MINIMUM       _DATA         
+_lf_fchcmp    00038998  FCHCMP        _TEXT         EXPORT
+_lf_fcheqs    00038910  FCHEQS        _TEXT         EXPORT
+_lf_ffree     0003F29B  FHEAP         _TEXT         
+_lf_file_of-  00052BB8  EREPORT       _DATA         
+_lf_findtem-  00041AFF  COREIO        _TEXT         
+_lf_finish_-  0003F0C3  LF_LOW        _TEXT         EXPORT
+_lf_flush_u-  0003D37A  IOMISC        _TEXT         EXPORT
+_lf_fmalloc   0003F274  FHEAP         _TEXT         
+_lf_fmalloc-  00038021  EREPORT       _TEXT         EXPORT
+_lf_fmt_ini-  0003FDEF  FMTIO         _TEXT         EXPORT
+_lf_fmt_lis-  0003FE5A  FMTIO         _TEXT         EXPORT
+_lf_fmtflag   000538D4  FMTIO         _DATA         
+_lf_fmtmod    000421CC  FMTNOMOD      _TEXT         
+_lf_fndname   0003FAF8  FCB           _TEXT         EXPORT
+_lf_fndunit   0003D43C  MINIMUM       _TEXT         EXPORT
+_lf_fpu_con-  0005352C  LF_LOW        _DATA         
+_lf_frealloc  0003F2BC  FHEAP         _TEXT         
+_lf_free      000411EC  MEMORY        _TEXT         
+_lf_get_byte  0003D8D7  MINIMUM       _TEXT         EXPORT
+_lf_get_cur-  0003FC45  FCB           _TEXT         EXPORT
+_lf_get_env   00041D4B  LFGETENV      _TEXT         
+_lf_get_env-  00041D9A  LFGETENV      _TEXT         
+_lf_get_fmt-  00040DCE  FMTIO         _TEXT         EXPORT
+_lf_get_n_d   00041F98  ADIRECT       _TEXT         EXPORT
+_lf_get_n_f-  0003F874  AFMTIO        _TEXT         EXPORT
+_lf_getenv    00041D24  LFGETENV      _TEXT         
+_lf_hInstan-  00052904  LFINITWC      _DATA         
+_lf_hPrevIn-  00052908  LFINITWC      _DATA         
+_lf_heap_ha-  00072538  LF_LOW        _BSS          
+_lf_inchr     0003A550  fmtin2        _TEXT         
+_lf_incmx16   00039288  fmtin2        _TEXT         
+_lf_incmx8    00039260  fmtin2        _TEXT         
+_lf_index     00036740  INDEX         _TEXT         
+_lf_indnf     00038C37  FMTIN         _TEXT         EXPORT
+_lf_indnfa    00038CC8  FMTIN         _TEXT         EXPORT
+_lf_inint1    0003A428  fmtin2        _TEXT         
+_lf_inint2    0003A44C  fmtin2        _TEXT         
+_lf_inint4    0003A3E0  fmtin2        _TEXT         
+_lf_inint8    0003A404  fmtin2        _TEXT         
+_lf_init_co-  0003F562  LFINITWD      _TEXT         
+_lf_init_de-  00038EAA  FMTIN         _TEXT         EXPORT
+_lf_init_fpu  0003F320  initfpu       _TEXT         
+_lf_init_in-  0003FCB4  FMTIO         _TEXT         EXPORT
+_lf_init_win  0003F4D6  LFINITWD      _TEXT         
+_lf_initial-  000368D0  LFINITWC      _TEXT         
+_lf_initial-  00041631  MEMORY        _TEXT         
+_lf_inlog1    0003A494  fmtin2        _TEXT         
+_lf_inlog4    0003A470  fmtin2        _TEXT         
+_lf_input_f-  00052F70  fmtin2        _DATA         
+_lf_input_r-  00052F7A  fmtin2        _DATA         
+_lf_inrel4    0003A3BC  fmtin2        _TEXT         
+_lf_inrel8    0003A834  fmtin2        _TEXT         
+_lf_instance  00072534  LF_LOW        _BSS          
+_lf_intel_n-  0005292C  LFINITWC      _DATA         
+_lf_intrin_-  0003806B  EREPORT       _TEXT         EXPORT
+_lf_intrin_-  0003F601  errpub        _TEXT         
+_lf_intzf     00038A18  FMTIN         _TEXT         EXPORT
+_lf_intzfa    00038BA1  FMTIN         _TEXT         EXPORT
+_lf_io_emit-  00037EFB  EREPORT       _TEXT         EXPORT
+_lf_ioerr     0003F5E0  errpub        _TEXT         
+_lf_iostat    000531C4  MINIMUM       _DATA         
+_lf_iostat_-  00037E34  EREPORT       _TEXT         EXPORT
+_lf_isdigit   0003922C  FMTIN         _TEXT         
+_lf_itemsize  00040EEB  FMTIO         _TEXT         EXPORT
+_lf_line_of-  00052BB4  EREPORT       _DATA         
+_lf_link_th-  00072424  LF_LOW        _BSS          
+_lf_linked_-  00053548  LF_LOW        _DATA         
+_lf_log       000371D0  log           _TEXT         
+_lf_log10     00041E90  log10         _TEXT         
+_lf_lpCmdLi-  0005290C  LFINITWC      _DATA         
+_lf_lsl_ds    0003F1DC  LF_LOW        _TEXT         EXPORT
+_lf_main      000110C0  smarts295     _TEXT         
+_lf_main_er-  00041F6D  lfsold        _TEXT         
+_lf_main_wi-  00072548  LF_LOW        _BSS          
+_lf_maketem-  00041B3C  COREIO        _TEXT         
+_lf_malloc    0004108C  MEMORY        _TEXT         
+_lf_margin_-  0003AB70  FMTOT         _TEXT         EXPORT
+_lf_max_pri-  00053078  fmtot2        _DATA         
+_lf_memchr    000373B0  CSTRING       _TEXT         
+_lf_memcmp    000372FE  CSTRING       _TEXT         
+_lf_memcmpr   0003CC13  IOMISC        _TEXT         EXPORT
+_lf_memcopy   0003CC7D  IOMISC        _TEXT         EXPORT
+_lf_memicmp   00037332  CSTRING       _TEXT         
+_lf_memmem    000373CE  CSTRING       _TEXT         
+_lf_message-  00052BB0  EREPORT       _DATA         
+_lf_nCmdShow  00052910  LFINITWC      _DATA         
+_lf_ncode     0003AA71  FMTOT         _TEXT         EXPORT
+_lf_negdima   0003F6F9  errpub        _TEXT         
+_lf_newmodu-  00038896  EREPORT       _TEXT         
+_lf_next_bu-  0003D942  MINIMUM       _TEXT         EXPORT
+_lf_next_wr-  0003DA07  MINIMUM       _TEXT         EXPORT
+_lf_nl_flag   000538E6  FMTIO         _DATA         
+_lf_no_head-  00072420  LF_LOW        _BSS          
+_lf_ntznumf   00040EE0  FMTIO         _TEXT         EXPORT
+_lf_null_pr-  00041F6F  lfsold        _TEXT         
+_lf_ontzf     0003A858  FMTOT         _TEXT         EXPORT
+_lf_ontzfa    0003AA12  FMTOT         _TEXT         EXPORT
+_lf_open      0003DA5C  OPEN          _TEXT         EXPORT
+_lf_otchr     0003B280  fmtot2        _TEXT         
+_lf_otcmx16   0003B000  fmtot2        _TEXT         
+_lf_otcmx8    0003AFA0  fmtot2        _TEXT         
+_lf_otdnf     0003AADE  FMTOT         _TEXT         EXPORT
+_lf_otint1    0003ADD0  fmtot2        _TEXT         
+_lf_otint2    0003AE1C  fmtot2        _TEXT         
+_lf_otint4    0003AE68  fmtot2        _TEXT         
+_lf_otint8    0003AEB4  fmtot2        _TEXT         
+_lf_otlog1    0003B188  fmtot2        _TEXT         
+_lf_otlog4    0003B1AC  fmtot2        _TEXT         
+_lf_otrel4    0003AD18  fmtot2        _TEXT         
+_lf_otrel8    0003AD74  fmtot2        _TEXT         
+_lf_output_-  000538D0  FMTIO         _DATA         
+_lf_output_-  0003C454  fmtot2        _TEXT         
+_lf_output_-  00053060  fmtot2        _DATA         
+_lf_pause1    00040F60  PAUSE         _TEXT         EXPORT
+_lf_pause_a-  00072408  LF_LOW        _BSS          
+_lf_penttest  00011068  pentest       _TEXT         
+_lf_pfill     0005307C  fmtot2        _DATA         
+_lf_pow       000368E0  pow           _TEXT         
+_lf_ptr_asg-  0003F789  errpub        _TEXT         
+_lf_put_byte  0003D96E  MINIMUM       _TEXT         EXPORT
+_lf_put_fmt-  00040B77  FMTIO         _TEXT         EXPORT
+_lf_put_n_d   00042094  ADIRECT       _TEXT         EXPORT
+_lf_put_n_f-  0003FA37  AFMTIO        _TEXT         EXPORT
+_lf_q_fmt_i-  00038D11  FMTIN         _TEXT         
+_lf_read_bu-  0003D0FD  IOMISC        _TEXT         EXPORT
+_lf_realloc   00041101  MEMORY        _TEXT         
+_lf_realloc-  0003FBDB  FCB           _TEXT         EXPORT
+_lf_recover-  00038E0F  FMTIN         _TEXT         
+_lf_refbnda   0003F641  errpub        _TEXT         
+_lf_release-  0003FC4B  FCB           _TEXT         EXPORT
+_lf_rep_cnt   00072380  FMTIN         _BSS          
+_lf_repeat_-  00052F8C  fmtin2        _DATA         
+_lf_repeat_-  00052EE0  FMTIN         _DATA         
+_lf_rewind    0003EE90  REWIND        _TEXT         EXPORT
+_lf_rt_io_e-  00037F57  EREPORT       _TEXT         EXPORT
+_lf_rtp_fla-  00053522  LF_LOW        _DATA         
+_lf_scan_di-  00038EBF  FMTIN         _TEXT         EXPORT
+_lf_set_dev-  00041C9A  COREIO        _TEXT         EXPORT
+_lf_set_io_-  0003D3EA  IOMISC        _TEXT         EXPORT
+_lf_set_ios-  0003D3C6  IOMISC        _TEXT         EXPORT
+_lf_set_loc-  00040F50  location      _TEXT         
+_lf_set_name  0003D828  MINIMUM       _TEXT         EXPORT
+_lf_set_rea-  0003C93C  IOMISC        _TEXT         EXPORT
+_lf_set_rec-  0003CDCA  IOMISC        _TEXT         EXPORT
+_lf_set_sta-  0003F1EA  LF_LOW        _TEXT         EXPORT
+_lf_set_unb-  00041CDF  COREIO        _TEXT         EXPORT
+_lf_set_wri-  0003C99D  IOMISC        _TEXT         EXPORT
+_lf_setup_f-  0003F7D0  FLG2RT        _TEXT         
+_lf_shape_e-  0003F727  errpub        _TEXT         
+_lf_show_pr-  00041064  PAUSE         _TEXT         
+_lf_sin       00037170  f_sin         _TEXT         
+_lf_skip_sp-  00038F96  FMTIN         _TEXT         
+_lf_sold_ND-  00041F6E  lfsold        _TEXT         
+_lf_sold_ea-  00041F60  lfsold        _TEXT         
+_lf_spindri-  0003EE46  OPEN          _TEXT         
+_lf_spindri-  0003ED34  OPEN          _TEXT         
+_lf_spindri-  0003EE78  OPEN          _TEXT         
+_lf_stack_e-  0003802A  EREPORT       _TEXT         EXPORT
+_lf_stack_t-  0008ADF0  winstack      ??stack       
+_lf_stackbo-  00072990  LFINITWD      _BSS          
+_lf_stackma-  00053538  LF_LOW        _DATA         
+_lf_stacktop  0007298C  LFINITWD      _BSS          
+_lf_status    0005352E  LF_LOW        _DATA         
+_lf_stderr_-  00072544  LF_LOW        _BSS          
+_lf_stdin_h-  0007253C  LF_LOW        _BSS          
+_lf_stdout_-  00072540  LF_LOW        _BSS          
+_lf_stop      0003D542  MINIMUM       _TEXT         EXPORT
+_lf_stop1     0003D552  MINIMUM       _TEXT         EXPORT
+_lf_strcat    0003CB26  IOMISC        _TEXT         EXPORT
+_lf_strchr    000372E3  CSTRING       _TEXT         
+_lf_strcmpr   0003CB5C  IOMISC        _TEXT         EXPORT
+_lf_strcopy   0003CC3F  IOMISC        _TEXT         EXPORT
+_lf_strcpy    00037294  CSTRING       _TEXT         
+_lf_strncpy   000372B0  CSTRING       _TEXT         
+_lf_strpbrk   0003749F  CSTRING       _TEXT         
+_lf_strstr    0003745C  CSTRING       _TEXT         
+_lf_subbnda   0003F69D  errpub        _TEXT         
+_lf_tag_fcb   0003D4B5  MINIMUM       _TEXT         EXPORT
+_lf_tan       000371A0  f_tan         _TEXT         
+_lf_toupper   0003923E  FMTIN         _TEXT         
+_lf_trace     00072404  LF_LOW        _BSS          
+_lf_trace_b-  000383FE  EREPORT       _TEXT         
+_lf_trap_d    000723F4  LF_LOW        _BSS          
+_lf_trap_i    000723F0  LF_LOW        _BSS          
+_lf_trap_ma-  00053534  LF_LOW        _DATA         
+_lf_trap_o    000723F8  LF_LOW        _BSS          
+_lf_trap_p    00072400  LF_LOW        _BSS          
+_lf_trap_u    000723FC  LF_LOW        _BSS          
+_lf_truncate  0003CA34  IOMISC        _TEXT         EXPORT
+_lf_unit_ch-  0003CABF  IOMISC        _TEXT         EXPORT
+_lf_unused12  0007240C  LF_LOW        _BSS          
+_lf_unused13  00072410  LF_LOW        _BSS          
+_lf_unused14  00072414  LF_LOW        _BSS          
+_lf_unused15  00072418  LF_LOW        _BSS          
+_lf_unused16  0007241C  LF_LOW        _BSS          
+_lf_vect_le-  00038047  EREPORT       _TEXT         EXPORT
+_lf_win32s_-  00053530  LF_LOW        _DATA         
+_lf_winver    00072530  LF_LOW        _BSS          
+_lf_write_b-  0003D72A  MINIMUM       _TEXT         EXPORT
+_lfacos       000365A0  facos         _TEXT         
+_lfacos_err-  00037F75  EREPORT       _TEXT         EXPORT
+_lfasin       000365D4  fasin         _TEXT         
+_lfasin_err-  00037F7E  EREPORT       _TEXT         EXPORT
+_lfatan2      00036608  fatan2        _TEXT         
+_lfc_div_c_-  00037FFD  EREPORT       _TEXT         EXPORT
+_lfcabs_err-  00037FBE  EREPORT       _TEXT         EXPORT
+_lfccos_err-  00037FC7  EREPORT       _TEXT         EXPORT
+_lfcexp_err-  00037FD0  EREPORT       _TEXT         EXPORT
+_lfcheck_de-  0003EBDE  OPEN          _TEXT         
+_lfclog_err-  00037FD9  EREPORT       _TEXT         EXPORT
+_lfcos        00036620  fcos          _TEXT         
+_lfcosh_err-  00037F87  EREPORT       _TEXT         EXPORT
+_lfcsin_err-  00037FE2  EREPORT       _TEXT         EXPORT
+_lfcsqrt_er-  00037FEB  EREPORT       _TEXT         EXPORT
+_lfdz_div_e-  00038018  EREPORT       _TEXT         EXPORT
+_lfexp        00036630  fexp          _TEXT         
+_lfexp_error  00037F90  EREPORT       _TEXT         EXPORT
+_lffltused    00071A21  BC_DEFS       _BSS          
+_lflog        00036664  flog          _TEXT         
+_lflog10_er-  00037F9A  EREPORT       _TEXT         EXPORT
+_lflog_error  00037FA3  EREPORT       _TEXT         EXPORT
+_lfno_exp_e-  00037F99  EREPORT       _TEXT         EXPORT
+_lfpow_dd_v-  000366B8  pow_dd_v      _TEXT         
+_lfpow_di_v-  000366D0  pow_di_v      _TEXT         
+_lfpower_er-  00037FF4  EREPORT       _TEXT         EXPORT
+_lfrc_div_e-  0003800F  EREPORT       _TEXT         EXPORT
+_lfrep_char-  00052F84  fmtin2        _DATA         
+_lfsin        00036698  fsin          _TEXT         
+_lfsinh_err-  00037FAC  EREPORT       _TEXT         EXPORT
+_lfsqrt_err-  00037FB5  EREPORT       _TEXT         EXPORT
+_lfsure_the-  0004163C  COREIO        _TEXT         
+_lftan        000366A8  ftan          _TEXT         
+_lftrunc_     00041E30  mw_asm0       _TEXT         
+_lftruncu_    00041E30  mw_asm0       _TEXT         
+_lfz_div_z_-  00038006  EREPORT       _TEXT         EXPORT
+_mwINIT       00071A20  BC_DEFS       _BSS          
+_osver        0005372C  LFINITWD      _DATA         
+_pgmptr       0005291C  LFINITWC      _DATA         
+_winmajor     00053734  LFINITWD      _DATA         
+_winminor     00053730  LFINITWD      _DATA         
+_winver       00053738  LFINITWD      _DATA         
+do_test       0001108C  pentest       _TEXT         
+inv_b_hi      000540F0  pow_tbl1      _data         
+log10         0003F376  initfpu       _TEXT         
+lstrlenA      0004227C  lstrlenA      .jdata        IMPORT
+main          0003F3A3  LFINITWD      _TEXT         
+mainCRTStar-  00011000  lfinitw       _TEXT         
+memcpy        000374CB  CSTRING       _TEXT         
+memset        000374EE  CSTRING       _TEXT         
+t_hi          00054500  pow_tbl2      _data         
+t_lo          00054908  pow_tbl2      _data         
+windows_ins-  0003F1DF  LF_LOW        _TEXT         EXPORT
+
+
+Public symbols imported from DLLs
+
+   AllocConsole=kernel32.dll.AllocConsole
+   CloseHandle=kernel32.dll.CloseHandle
+   CreateFileA=kernel32.dll.CreateFileA
+   DefWindowProcA=user32.dll.DefWindowProcA
+   DeleteFileA=kernel32.dll.DeleteFileA
+   DestroyWindow=user32.dll.DestroyWindow
+   ExitProcess=kernel32.dll.ExitProcess
+   FreeConsole=kernel32.dll.FreeConsole
+   GetCommandLineA=kernel32.dll.GetCommandLineA
+   GetCurrentDirectoryA=kernel32.dll.GetCurrentDirectoryA
+   GetEnvironmentVariableA=kernel32.dll.GetEnvironmentVariableA
+   GetFileSize=kernel32.dll.GetFileSize
+   GetFileType=kernel32.dll.GetFileType
+   GetLastError=kernel32.dll.GetLastError
+   GetModuleFileNameA=kernel32.dll.GetModuleFileNameA
+   GetModuleHandleA=kernel32.dll.GetModuleHandleA
+   GetProcessHeap=kernel32.dll.GetProcessHeap
+   GetStartupInfoA=kernel32.dll.GetStartupInfoA
+   GetStdHandle=kernel32.dll.GetStdHandle
+   GetStockObject=gdi32.dll.GetStockObject
+   GetSystemTime=kernel32.dll.GetSystemTime
+   GetVersion=kernel32.dll.GetVersion
+   HeapAlloc=kernel32.dll.HeapAlloc
+   LoadCursorA=user32.dll.LoadCursorA
+   LoadIconA=user32.dll.LoadIconA
+   MessageBoxA=user32.dll.MessageBoxA
+   PostQuitMessage=user32.dll.PostQuitMessage
+   ReadConsoleA=kernel32.dll.ReadConsoleA
+   ReadFile=kernel32.dll.ReadFile
+   RegisterClassA=user32.dll.RegisterClassA
+   SetEndOfFile=kernel32.dll.SetEndOfFile
+   SetFilePointer=kernel32.dll.SetFilePointer
+   WriteFile=kernel32.dll.WriteFile
+   lstrlenA=kernel32.dll.lstrlenA

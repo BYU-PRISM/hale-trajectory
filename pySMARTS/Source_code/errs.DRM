@@ -1,0 +1,58 @@
+Working Directory `e:\SMART2~1\SMARTS~1\SOURCE~1'
+E:\LF9045\BIN\lf90.exe "e:\SMART295UPDATE\SMARTS_295_PC\Source_code\smarts295.f" -nwrap -pause
+Lahey Fortran 90 Compiler Release 4.50i  S/N: F9370935
+Copyright (C) 1994-1999 Lahey Computer Systems.  All rights reserved.
+Copyright (C) 1985-1999 Intel Corp.  All rights reserved.
+Registered to:	Daryl Myers
+		NREL
+Options:
+-ap            -nbind         -nc            -nchk          -co
+-ndal          -dbl           -ndll          -nf90          -fix
+-ng            -hed           -nin           -ninln         -nlisk
+-nlst          -maxfatals 50  -nml           -o0            -no
+-out e:\SMART295UPDATE\SMARTS_295_PC\Source_code\smarts295.exe
+-pause         -pca           -sav           -stack 20000h  -nstaticlink
+-stchk         -nswm          -nsyn          -tp            -ntrace
+-ntrap         -vax           -vm            -nw            -winconsole
+-nwisk         -nwo           -nwrap         -nxref
+
+Compiling file e:\SMART295UPDATE\SMARTS_295_PC\Source_code\smarts295.f.
+Compiling program unit _LF_MAIN at line 35.
+Compiling program unit ALBCHK at line 3589.
+Compiling program unit ALBDAT at line 3617.
+Compiling program unit ALBDOS at line 3976.
+Compiling program unit ALFA at line 4056.
+Compiling program unit AMZ at line 4120.
+Compiling program unit CIRCUM at line 4133.
+Compiling program unit GASES at line 4270.
+Compiling program unit GSCH4 at line 4339.
+Compiling program unit GSCH2O at line 4349.
+Compiling program unit GSCO at line 4364.
+Compiling program unit GSHNO2 at line 4373.
+Compiling program unit GSHNO3 at line 4387.
+Compiling program unit GSNO at line 4403.
+Compiling program unit GSNO2 at line 4412.
+Compiling program unit GSNO3 at line 4426.
+Compiling program unit GSO3U at line 4440.
+Compiling program unit GSSO2U at line 4459.
+Compiling program unit GSSO2I at line 4475.
+Compiling program unit INTERP at line 4486.
+Compiling program unit NDAY at line 4516.
+Compiling program unit OZON at line 4536.
+Compiling program unit OZON2 at line 4634.
+Compiling program unit PHASE1 at line 4695.
+Compiling program unit PHASE2 at line 4764.
+Compiling program unit PHDATA at line 4856.
+Compiling program unit PHF1 at line 4922.
+Compiling program unit REFATM at line 4947.
+Compiling program unit SCANG at line 5424.
+Compiling program unit SCANT at line 5523.
+Compiling program unit STEPS at line 5623.
+Compiling program unit SUNPSA at line 5638.
+Compiling program unit UVDAT at line 5758.
+Compiling program unit VISTAU at line 5880.
+Encountered 0 errors, 0 warnings in file e:\SMART295UPDATE\SMARTS_295_PC\Source_code\smarts295.f.
+
+386|LINK: 9.1fix1 -- Copyright (C) 1986-98 Phar Lap Software, Inc.
+
+DOS Task finished

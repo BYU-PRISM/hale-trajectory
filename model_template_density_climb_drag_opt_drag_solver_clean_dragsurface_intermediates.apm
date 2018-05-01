@@ -1,0 +1,314 @@
+Model
+    Constants
+    pi = 3.141592653
+    ! Atmospheric Effects
+    g = 9.80665 ! Gravity (m/s^2)
+    Mm = 0.0289644 ! Molar mass of dry air (kg/mol)
+    R = 8.31447 ! Gas Constant (J/mol K)
+    R_air = 287.041 ! Gas Constant for air (m^2/(s^2 K))
+    rho_11 = 0.364 ! Standard air density at 11 km (kg/m^3)
+    T_11 = 216.66 ! Standard air temp at 11 km (K)
+    h_t = 25000 ! Transition point between density functions (piece-wise formulation with logical conditions)
+
+    ! Flight Dynamics
+    m = 425 ! Total Mass (kg) (FB)
+    E_d = 350 ! Battery energy density (W*hr/kg) (FB)
+    m_payload = 25 ! Mass of payload (kg) (FB)
+    m_battery = 212 ! (kg) (FB)
+    panel_density = 0.17 ! (Alta Devices)
+    ! panel_efficiency = 0.25 ! (FB)
+    ! mu = 1.4397e-5 ! Air viscosity from 11 km - 25 km (Standard Atmosphere)
+    max_dist = 3000 ! Maximum orbit radius (m)
+
+    ! Drag Model (Translated from Judd's Matlab code)
+    Lambda = 20*pi/180 ! Sweep angle (Judd)
+    AR = 30 ! Aspect ratio (FB)
+    thickness = 0.11 ! Thickness ratio (Judd)
+    S = 60 ! Wing and solar panel area (m^2) (FB)
+    b = sqrt(S*AR) ! Wingspan (m)
+    chord = b/AR ! Chord (m)
+    roughness = 1.1 ! Roughness factor (Judd)
+    es = 0.98 ! Inviscid span efficiency (Judd)
+    xcrit_top = 0.7412 ! Top surface transition point (Judd)
+    xcrit_bottom = 1 ! Bottom surface transition point (Judd)
+    S_wet = (1+0.2*thickness)*S ! Wetted surface area for one side (m^2)
+    Ck = 1.1 ! empirical constant used in finding form factor
+    k = 1 + 2*Ck*thickness*(cos(Lambda))^2 + Ck^2*(cos(Lambda)^2*thickness^2*(1+5*(cos(Lambda)^2)))/2 ! Form Factor
+	
+	! Surface fit for drag vs alpha and Re
+	dsa = 1.2379225459790737E+02
+    dsb = -1.2385770684910669E+04
+    dsc = -5.7633649503331696E-01
+    dsd = -6.3984649510237453E-05
+    dsf = 1.0013226926073848E+00
+    dsg = 4.0573453980222610E+01
+    dsh = -2.0332829937750183E+06
+	
+    ! Propeller Efficiency
+    R_prop = 2 ! Propeller Radius (m) - Kevin
+
+    ! Power
+    ! e_prop = 0.85 ! Efficiency of propeller
+    e_motor = 0.95 ! Efficiency of motor
+    ! nu_prop = e_prop*e_motor ! Efficiency of propulsion
+    P_payload = 250 ! Power for payload (W)
+    P_int = 250 ! Power for other internal systems (W)
+    E_batmax = m_battery*E_d*3.6/1000 ! Max energy stored in battery (MJ)
+    use_solar_orientation = 1 ! Switch between horizontal and oriented solar
+
+    ! Solar Efficiency - updated (fit to -50 deg C)
+    eta = 0.12
+    beta = 0.0021888986107182 ! 0.002720315 (old)
+    Tref = 298.15
+    gamma_s = 0.413220518404272 ! 0.513153469 (old)
+    T_noct = 20.0310337470507 ! 20.0457889 (old)
+    G_noct = 0.519455027587048 ! 0.527822252 (old)
+
+    ! Initial Conditions (from final initialization)
+    h_0 = 18288
+    v_0 = 35 !28.4
+    gamma_0 = 0 ! Initial flight path angle (rad)
+    alpha_0 = 0.0874 ! Initial angle of attack (rad) gives cl of 1.05
+    psi_0 = 0 ! Initial heading (rad)
+    phi_0 = 0.0656 ! Initial bank angle (rad)
+    tp_0 = 110.54 ! Initial thrust
+    SOC_initial = 0.20
+    E_Batt_0 = E_batmax*SOC_initial ! Initial Battery Charge
+    End Constants
+
+    Parameters
+    t = 0 ! Time
+    flux = 0 ! Direct tracking flux from SMARTS
+    sunset = 0 ! Time step at which sun sets
+    zenith = 0 ! Solar zenith from SMARTS (0=up, 90=horizon)
+    azimuth = 0 ! Solar azimuth from SMARTS (clockwise from north)
+    sn1 = 0 ! Normalized sun direction vector
+    sn2 = 0 ! Normalized sun direction vector
+    sn3 = 0 ! Normalized sun direction vector
+    sun_h = 0 ! Flux on horizontal surface
+
+    ! FVs and MVs need to be parameters
+    tp = tp_0 !3.171 ! 48.4 ! Thrust (N)
+    alpha = alpha_0 ! Angle of Attack (rad)
+    phi = phi_0 !0.038 !2.059E-03 ! 0.0001 ! Bank Angle (rad)
+    P_bat = 0 ! Power used to charge or discharge battery (W)
+    End Parameters
+
+    Variables
+    ! Atmospheric Effects
+    h = h_0 <= 27432 >= 18288 ! Height from sea level (m) (27432 m = 90,000 ft, 18288 m = 60,000 ft)
+
+    ! intb = 0 , >= 0 , <= 1 ! Logical condition selector for air density
+    ! rho = rho_11 * exp(-(g/(R_air*T_11))*(h_0 - 11000)) ! Guess value from initial height (using lower range of equation)
+	! T_air = -56.46 + 273.15 ! Air temperature (guess value in isothermal region)
+
+    ! Flight Dynamics
+    v = v_0 >= 0 ! Velocity (m/s)
+    gamma = gamma_0 >= -0.0872665 <= 0.0872665 ! Flight path angle (rad) - previously >= -1 <= 1
+    psi = psi_0 ! Heading angle
+    x = 0 ! Horizontal distance (m)
+    y = -3000 ! Other horizontal distance
+    dist = sqrt(x^2 + y^2) >= 0 <= max_dist
+	cl = 0.0945*alpha_0*180/pi + 0.6555
+
+    ! Solar
+    mu_clipped = 0 >= 0
+    mu_slack = 0 >= 0
+
+    ! Power
+    E_Batt = E_Batt_0 <= E_batmax ! Energy stored in battery (MJ)
+    TE = E_Batt_0 + m*g*(h-h_0)*1e-6 ! Total energy (MJ)
+    P_total = 0 >= 0
+
+
+
+
+    !!!! Atmospheric Effects
+    T_25 = -131.21+0.00299*h
+    P_25 = 2.488*((T_25 + 273.15)/216.6)^(-11.388)
+	rho = rho_11 * exp(-(g/(R_air*T_11))*(h_0 - 11000))
+    ! rho_11_to_25 = (1 - intb) * (rho_11 * exp(-(g/(R_air*T_11))*(h - 11000))) ! Air density (kg/m^3)
+    ! rho_25_plus = intb * (P_25 / (0.2869 * (T_25 + 273.15)))
+	T_air = -56.46 + 273.15
+	! T_11_to_25 = (1 - intb) * (-56.46 + 273.15) ! Temperature (K) Standard Atmosphere
+	! T_25_plus = intb * (T_25 + 273.15)
+	mu = 1.458e-6*sqrt(T_air)/(1+110.4/T_air) ! Dynamic viscosity of air (kg/(m s))
+
+    ! Pitch from AoA
+    theta = gamma + alpha
+
+
+    !!!! Drag Model
+    !!! Top Surface
+    !! Top Reynolds Numbers
+    ! Flat plate Reynolds number
+    Re = rho*v*chord/mu ! Reynolds number
+	
+	!!! Parasitic drag from xflr5
+	alpha_deg = alpha*180/pi
+	! C_D_p = 6.2740486643e-07*alpha_deg**5 - 1.4412023268e-05*alpha_deg**4 + 1.1160259529e-04*alpha_deg**3 - 2.2563681473E-04*alpha_deg**2 - 8.6114793593E-05*alpha_deg + 1.0569281079E-02
+	! C_D_p = 3.4710563973E-07*alpha_deg^5 - 6.1283552477E-06*alpha_deg^4 + 2.6494860742E-05*alpha_deg^3 + 1.2303330810E-04*alpha_deg^2 - 5.2990511666E-04*alpha_deg + 1.0518762771E-02
+	! C_D_p = dsa * (Re/dsb)^dsc * exp(alpha_deg/dsb) + dsoffset
+	! C_D_p = dsa + dsb*Re + dsc*alpha_deg + dsd*alpha_deg*Re + dsf*alpha_deg^2.0 + dsg*alpha_deg^2.0*Re + dsh*alpha_deg^3.0 + dsi*alpha_deg^3.0*Re + dsj*alpha_deg^4.0 + dsk*alpha_deg^4.0*Re
+	! C_D_p = dsa + dsb*Re + dsc*alpha_deg + dsd*alpha_deg*Re + dsf*alpha_deg^2 + dsg*alpha_deg^2*Re
+	! C_D_p = dsa * (dsd * alpha_deg + dsf)**dsb * (dsg * Re + dsh)**dsc + dsOffset
+	! C_D_p = dsa*Re**(dsb+dsc*alpha_deg)+dsOffset
+	C_D_p = dsa * ((dsd * alpha_deg + dsf)**dsb + (dsg * Re + dsh)**dsc)
+	
+    ! Oswald efficiency factor
+    k_e = 0.4*C_D_p
+    e_o = 1/((pi*AR*k_e) + (1/es))
+    ! Drag coefficient
+    C_D = C_D_p + cl^2/(pi*AR*e_o)
+    cd = C_D ! Added for data handling
+
+    !!!! Flight Dynamics
+    q = 1/2*rho*v^2 ! Dynamic pressure (Pa)
+
+    L = q*cl*S ! Lift (N) (simplified definition using q)
+    D = C_D*q*S  ! Drag (N) (Nathaniel correction - use C_D, as C_D_p is already included)
+
+    nh = L*sin(phi)/(m*g) ! Horizontal load factor
+    nv = L*cos(phi)/(m*g) ! Vertical load factor
+
+    !!! Propeller Max Theoretical Efficiency
+    Adisk = pi * R_prop^2 ! Area of disk
+    e_prop = 2.0 / (1.0 + ( D / (Adisk * v^2.0 * rho/2.0) + 1.0 )^0.5)
+    nu_prop = e_prop * e_motor
+
+    !!!! Power
+    P_N = P_payload + v*tp/nu_prop ! Power Needed by Aircraft
+
+    !!!! Solar (with orientation correction)
+    c1 = cos(-phi)
+    c2 = cos(-theta)
+    c3 = cos(psi)
+    s1 = sin(-phi)
+    s2 = sin(-theta)
+    s3 = sin(psi)
+    n1 = c1*s2*s3 - c3*s1
+    n2 = c1*c3*s2 + s1*s3
+    n3 = c1*c2
+    A_trans = -azimuth + 90
+    A_transrad = A_trans * pi/180
+    Zrad = zenith * pi/180
+    nn = sqrt(n1^2+n2^2+n3^2)
+    mu_solar = sn1*n1/nn + sn2*n2/nn + sn3*n3/nn
+    G_sol = flux * mu_clipped ! Orientation adjusted solar flux (W/m^2)
+    panel_efficiency = eta*(1-beta*(T_11-Tref+(T_noct-20)*G_sol/G_noct)+gamma_s*log10(G_sol+0.01)) ! Solar panel efficiency (Nathaniel)
+    !solar_o = mu_solar * panel_efficiency * S * flux ! Total power generated by panel (W)
+    solar_o = mu_clipped * panel_efficiency * S * flux ! Total power generated by panel (W)    
+    solar_h = sun_h * panel_efficiency * S
+    P_solar = solar_o * use_solar_orientation + solar_h * (1-use_solar_orientation) ! Allows switching solar orientation
+    End Variables
+
+    Equations
+    ! Flight Dynamics
+    $v = ((tp - D)/(m*g) - sin(gamma))*g
+    $gamma*v = g*(nv - cos(gamma))
+    $psi*v*cos(gamma) = g*nh
+    $h = v*sin(gamma)
+    $x = v*cos(psi)*cos(gamma)
+    $y = v*sin(psi)*cos(gamma)
+    dist = sqrt(x^2 + y^2)
+
+    ! Power
+    $E_Batt = P_bat*1e-6 ! (Convert to MJ) P_bat is the charging rate of the battery.
+    P_total = P_solar - P_bat - P_N
+    TE = E_Batt + m*g*(h-h_0)*1e-6
+
+    ! Solar
+    mu_clipped = mu_solar + mu_slack
+    mu_clipped*mu_slack <= 1e-4
+
+    !!! Old intermediates
+	!!!! Atmospheric Effects
+    T_25 = -131.21+0.00299*h
+    P_25 = 2.488*((T_25 + 273.15)/216.6)^(-11.388)
+	rho = rho_11 * exp(-(g/(R_air*T_11))*(h_0 - 11000))
+    ! rho_11_to_25 = (1 - intb) * (rho_11 * exp(-(g/(R_air*T_11))*(h - 11000))) ! Air density (kg/m^3)
+    ! rho_25_plus = intb * (P_25 / (0.2869 * (T_25 + 273.15)))
+	T_air = -56.46 + 273.15
+	! T_11_to_25 = (1 - intb) * (-56.46 + 273.15) ! Temperature (K) Standard Atmosphere
+	! T_25_plus = intb * (T_25 + 273.15)
+	mu = 1.458e-6*sqrt(T_air)/(1+110.4/T_air) ! Dynamic viscosity of air (kg/(m s))
+
+    ! Pitch from AoA
+    theta = gamma + alpha
+
+
+    !!!! Drag Model
+    !!! Top Surface
+    !! Top Reynolds Numbers
+    ! Flat plate Reynolds number
+    Re = rho*v*chord/mu ! Reynolds number
+	
+	!!! Parasitic drag from xflr5
+	alpha_deg = alpha*180/pi
+	! C_D_p = 6.2740486643e-07*alpha_deg**5 - 1.4412023268e-05*alpha_deg**4 + 1.1160259529e-04*alpha_deg**3 - 2.2563681473E-04*alpha_deg**2 - 8.6114793593E-05*alpha_deg + 1.0569281079E-02
+	! C_D_p = 3.4710563973E-07*alpha_deg^5 - 6.1283552477E-06*alpha_deg^4 + 2.6494860742E-05*alpha_deg^3 + 1.2303330810E-04*alpha_deg^2 - 5.2990511666E-04*alpha_deg + 1.0518762771E-02
+	! C_D_p = dsa * (Re/dsb)^dsc * exp(alpha_deg/dsb) + dsoffset
+	! C_D_p = dsa + dsb*Re + dsc*alpha_deg + dsd*alpha_deg*Re + dsf*alpha_deg^2.0 + dsg*alpha_deg^2.0*Re + dsh*alpha_deg^3.0 + dsi*alpha_deg^3.0*Re + dsj*alpha_deg^4.0 + dsk*alpha_deg^4.0*Re
+	! C_D_p = dsa + dsb*Re + dsc*alpha_deg + dsd*alpha_deg*Re + dsf*alpha_deg^2 + dsg*alpha_deg^2*Re
+	! C_D_p = dsa * (dsd * alpha_deg + dsf)**dsb * (dsg * Re + dsh)**dsc + dsOffset
+	! C_D_p = dsa*Re**(dsb+dsc*alpha_deg)+dsOffset
+	C_D_p = dsa * ((dsd * alpha_deg + dsf)**dsb + (dsg * Re + dsh)**dsc)
+	
+    ! Oswald efficiency factor
+    k_e = 0.4*C_D_p
+    e_o = 1/((pi*AR*k_e) + (1/es))
+    ! Drag coefficient
+    C_D = C_D_p + cl^2/(pi*AR*e_o)
+    cd = C_D ! Added for data handling
+
+    !!!! Flight Dynamics
+    q = 1/2*rho*v^2 ! Dynamic pressure (Pa)
+
+    L = q*cl*S ! Lift (N) (simplified definition using q)
+    D = C_D*q*S  ! Drag (N) (Nathaniel correction - use C_D, as C_D_p is already included)
+
+    nh = L*sin(phi)/(m*g) ! Horizontal load factor
+    nv = L*cos(phi)/(m*g) ! Vertical load factor
+
+    !!! Propeller Max Theoretical Efficiency
+    Adisk = pi * R_prop^2 ! Area of disk
+    e_prop = 2.0 / (1.0 + ( D / (Adisk * v^2.0 * rho/2.0) + 1.0 )^0.5)
+    nu_prop = e_prop * e_motor
+
+    !!!! Power
+    P_N = P_payload + v*tp/nu_prop ! Power Needed by Aircraft
+
+    !!!! Solar (with orientation correction)
+    c1 = cos(-phi)
+    c2 = cos(-theta)
+    c3 = cos(psi)
+    s1 = sin(-phi)
+    s2 = sin(-theta)
+    s3 = sin(psi)
+    n1 = c1*s2*s3 - c3*s1
+    n2 = c1*c3*s2 + s1*s3
+    n3 = c1*c2
+    A_trans = -azimuth + 90
+    A_transrad = A_trans * pi/180
+    Zrad = zenith * pi/180
+    nn = sqrt(n1^2+n2^2+n3^2)
+    mu_solar = sn1*n1/nn + sn2*n2/nn + sn3*n3/nn
+    G_sol = flux * mu_clipped ! Orientation adjusted solar flux (W/m^2)
+    panel_efficiency = eta*(1-beta*(T_11-Tref+(T_noct-20)*G_sol/G_noct)+gamma_s*log10(G_sol+0.01)) ! Solar panel efficiency (Nathaniel)
+    !solar_o = mu_solar * panel_efficiency * S * flux ! Total power generated by panel (W)
+    solar_o = mu_clipped * panel_efficiency * S * flux ! Total power generated by panel (W)    
+    solar_h = sun_h * panel_efficiency * S
+    P_solar = solar_o * use_solar_orientation + solar_h * (1-use_solar_orientation) ! Allows switching solar orientation
+
+    ! Constraints
+	cl = 0.0945*alpha*180/pi + 0.6555
+
+    ! Objective
+    maximize TE
+
+    End Equations
+End Model
+
+File ipopt.opt
+    linear_solver ma57
+End File
