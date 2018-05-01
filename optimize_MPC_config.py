@@ -25,7 +25,7 @@ Updates:
 
 # Import APM package
 #from APMonitor import apm, apm_load, csv_load, apm_option, apm_info, apm_web, apm_sol
-from apm import *
+#from apm import *
 import numpy as np
 import pandas as pd
 import time as tm
@@ -309,7 +309,7 @@ def optimize_MPC(m,config):
                 m.options.nodes = 3
                 
             # Solve the horizon
-            m.solve()
+            m.solve(remote=False)
     
             # Check to see if APMonitor returned successful
             success_check = m.options.appstatus

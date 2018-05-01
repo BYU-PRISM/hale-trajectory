@@ -73,11 +73,11 @@ elif option=='2': # Custom values
     tp_dcost = 0.05/(30.0/time_step)/100*15
     phi_dcost = 0.5/(30.0/time_step)*15
     wind = [0,10,0]
-    define_use_wind = True
+    define_use_wind = False
     time_shift = 10
     gamma_factor = 1
     name = 'Aquila'
-    description = 'Test Wind'
+    description = 'Example Output Local'
 
 else :
     print('Error: Please input 1 or 2.')
