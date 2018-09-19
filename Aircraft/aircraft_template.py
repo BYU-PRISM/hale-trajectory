@@ -1,6 +1,7 @@
 
 import numpy as np
 import numbers
+from utilities import Param
 
 class Aircraft_Template:
     
@@ -127,13 +128,13 @@ class Aircraft_Template:
             efficiency = eta*(1-beta*(T_11-Tref+(T_noct-20)*G_sol/G_noct)+gamma*m.log10(G_sol+0.01))
         return efficiency
         
-class Param:
-    '''
-    Generic parameter holder
-    '''
-    def __init__(self,value,units):
-        self.value = value
-        self.units = units
+#class Param:
+#    '''
+#    Generic parameter holder
+#    '''
+#    def __init__(self,value,units):
+#        self.value = value
+#        self.units = units
         
 class Var:
     '''

@@ -63,7 +63,7 @@ class Settings:
         self.linear_solver = 'ma57'
         
         # Output folder label
-        self.run_description = 'Test'
+        self.description = 'Test'
         self.full_description = 'Insert full description here'
 
 class SolarLocations:

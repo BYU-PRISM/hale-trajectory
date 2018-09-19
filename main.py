@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 
-from settings import load_settings, process_settings
+from settings import Settings, process_settings
 from utilities import setup_directories
 from steady_state import integrate_steady_state
-from optimize import optimize_trajectory
-from init_model import init_model
+#from optimize import optimize_trajectory
+#from init_model import init_model
 
 #%% Setup
 # Load configuration settings
-config = load_settings()
+config = Settings()
 
 # Process configuration settings
 config = process_settings(config)
@@ -20,11 +20,11 @@ config = setup_directories(config)
 # Steady state solution
 integrate_steady_state(config)
 
-# Initialize GEKKO model        
-m = init_model(config)
-
-#%% Solve
-# Optimize
-optimize_trajectory(m,config)
-
-#%% Post Processing and Plotting
+## Initialize GEKKO model        
+#m = init_model(config)
+#
+##%% Solve
+## Optimize
+#optimize_trajectory(m,config)
+#
+##%% Post Processing and Plotting

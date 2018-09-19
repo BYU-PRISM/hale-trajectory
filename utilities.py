@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
-import yaml
+import pickle
 import datetime
 
 def setup_directories(config):
@@ -13,23 +13,25 @@ def setup_directories(config):
     
     # Create new results folder from timestamp and description
     cwd = os.getcwd()
-    results_folder = os.path.join(cwd,'Results','hale_' + str(time_stamp) + ' - ' + config['file']['description'])
+    results_folder = os.path.join(cwd,'Results','hale_' + str(time_stamp) + ' - ' + config.description)
     if not os.path.exists(results_folder):
         os.makedirs(results_folder)
         
     # Add new results folder to config
-    config['file']['results_folder'] = results_folder
-    config['file']['time_stamp'] = str(time_stamp)
+    config.results_folder = results_folder
+    config.time_stamp = str(time_stamp)
         
     # Save configuration file to output folder
-    config_filepath = os.path.join(results_folder,'config_file_' + str(time_stamp) +'.yml')
-    config['file']['config_filepath'] = config_filepath
-    with open(config_filepath, 'w') as outfile:
-        yaml.dump(config, outfile, default_flow_style=False)
+    config_filepath = os.path.join(results_folder,'config_file_' + str(time_stamp) +'.pkl')
+    save_object(config,config_filepath)
         
     print('Successfully created configuration file in ' + results_folder)
         
     return config
+
+def save_object(obj, filename):
+    with open(filename, 'wb') as output:  # Overwrites any existing file.
+        pickle.dump(obj, output, pickle.HIGHEST_PROTOCOL)
 
 class SolarLocation:
     def __init__(self,latitude,longitude,elevation,altitude,year,month,day,zone,name):
@@ -47,7 +49,7 @@ class Param:
     '''
     Generic parameter holder
     '''
-    def __init__(self,initial_value=None,value=None,max=None,min=None,units=None):
+    def __init__(self,value=None,units=None,initial_value=None,max=None,min=None):
         self.initial_value = initial_value
         self.value = value
         self.max = max
