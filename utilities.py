@@ -30,3 +30,26 @@ def setup_directories(config):
     print('Successfully created configuration file in ' + results_folder)
         
     return config
+
+class SolarLocation:
+    def __init__(self,latitude,longitude,elevation,altitude,year,month,day,zone,name):
+        self.latitude = latitude
+        self.longitude = longitude
+        self.elevation = elevation # km
+        self.altitude = altitude # km
+        self.year = year
+        self.month = month
+        self.day = day
+        self.zone = zone
+        self.name = name
+        
+class Param:
+    '''
+    Generic parameter holder
+    '''
+    def __init__(self,initial_value=None,value=None,max=None,min=None,units=None):
+        self.initial_value = initial_value
+        self.value = value
+        self.max = max
+        self.min = min
+        self.units = units
