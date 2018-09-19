@@ -1,97 +1,21 @@
 # -*- coding: utf-8 -*-
-"""
-Updates:
-    7/12/17:
-        - Added error checking with good_solution to determine when APMonitor solves successfully.
-        - Changed good_sol variable to sol_returned to better reflect what it indicates
-        - Added date and timestamp to be saved for each iteration
-        - Added iteration_save_frequency and configured the script to save data this often
-    7/14/17:
-        - Added error handling to trigger a resolve with coldstart for a failed solution
-    7/18/17:
-        - Added max_iterations as defined in config file
-        - Fixed bug that was causing files to remain open.
-        - Saves the number of iterations for each horizon (there's still a bug in this, but will be investigated)
-        - Saves the objective function value ("objfcnval") for each horizon
-    8/10/17:
-        - Merged with Abe's pandas dataframe changes - still needs testing (and plotting script)
-    8/29/17:
-        - Configured to work correctly with Pandas change
-        - Matched the column names between SS and Opt
-    9/26/17:
-        - Made a lot of changes - see commit comment
-        - Added a variable cd to the model files which is equal to C_D so it will pull that data correctly
-"""
 
 import numpy as np
 import pandas as pd
 import time as tm
 import datetime
 import os
-import yaml
-from plotting import plot3DPath, plotSolar, plotTotalEnergy # Need to get this module from Abe
-from status import updateStatus
-import sys
-import shutil
 import glob
+import sys
 
-def optimize_MPC(m,config):
-    #%% Import configuration file - Choose automatic or manual mode
-    
-    # Automatic = use config file stored in memory
-    # Manual = import previously defined config file by specifying folder name
-    
-    mode = 'automatic' # 'manual', 'automatic' 
-    
-    if mode=='automatic': ##### Need to finish updating this
-        
-        ### Import configuration file
-        # Run this code after defining the config file (and editing it if needed), with 
-        # the variables still in memory.
-        
-        newpath = config['file']['new_path']
-        oldpath = config['file']['original_path']
-        os.chdir(newpath)
-        with open(config['file']['configuration'], 'r') as ifile:
-            config_file = yaml.load(ifile)
-        config = config_file
-        os.chdir(oldpath)
-        time_stamp = config['file']['time_stamp']
-        
-    elif mode=='manual':
-        
-        str(input('Are you sure you want to use Manual mode? \n - If so, press enter. \n - If not, now is your chance to stop the code from running.'))  
-        print('Manual Mode Selected')
-        
-        ### Import a configuration file manually, from a specified folder/name
-        
-        folder_name = 'hale_2017_11_14_16_38_45 - Tsh 20 H 110'  # Folder that contains yaml file
-        time_stamp = folder_name.split()[0][5:]
-        file_name = 'config_file_' + time_stamp + '.yml'
-        cwd = os.getcwd()
-        directory = cwd+'/Results/'+folder_name+'/'
-        with open(directory+file_name, 'r') as ifile:
-            config_file = yaml.load(ifile)
-        config = config_file
-        newpath = config['file']['new_path']
-        oldpath = config['file']['original_path']
-    
-    else:
-        print('Error: Choose manual or automatic mode.')
-    
-    # Need above code to define model file and save it in the folder, and call it below
-    
-    
-    #%%
-    
-    # Change to correct directory to import model and csv files, and save the data
-    os.chdir(newpath)
+def optimize_trajectory(m,config):
     
     # Set timestep
     step = config['optimization']['time_step']['value']
     
     # Load solar data for whole day
-    filename = 'apm_input_' + time_stamp + '.csv'
+    time_stamp = config['file']['time_stamp']
+    filename = os.path.join(config['file']['results_folder'],'apm_input_' + time_stamp + '.csv')
     dayDataPart = pd.read_csv(filename,delimiter=',')
     
     filename = 'time_mpc_' + str(step) + 's.csv'
@@ -133,16 +57,8 @@ def optimize_MPC(m,config):
     m.tp.dcost = config['trajectory']['tp']['dcost']
     m.p_bat.status = 1
     m.p_bat.fstatus = 0
-#    m.mu_slack.status = 1
-#    m.mu_slack.fstatus = 0
     
     #CVs
-#    m.h.status = 1
-#    m.h.sphi = config['trajectory']['h']['max']
-#    m.h.splo = config['trajectory']['h']['min']
-##    m.h.wsphi = 100
-##    m.h.wsplo = 100
-#    m.h.tr_init = 0
     m.dist.status = 1
     m.dist.sphi = config['trajectory']['x']['max']
     m.dist.splo = 0
@@ -152,7 +68,7 @@ def optimize_MPC(m,config):
     
     
     # Initialize storage from first row of steady state solution
-    filenameSim = 'ss_results_' + str(time_stamp) + '_test' + '.xlsx'
+    filenameSim = os.path.join(config['file']['results_folder'],'ss_results_' + str(time_stamp) + '_test' + '.xlsx')
     ss_data = pd.read_excel(filenameSim)
     dataOut = ss_data.head(1)
     
@@ -174,8 +90,6 @@ def optimize_MPC(m,config):
     length = int(3600*(end_time - start_time)/time_step - horizon_length)
     
     save_freq = config['optimization']['iteration_save_frequency']
-    
-    error_flag = 0 # Initialize flag
     
     # Begin timing
     start = tm.time()
@@ -243,7 +157,6 @@ def optimize_MPC(m,config):
             m.sn3.value = df1['sn3'].values
             
         m.solve()
-    #    url = apm_web(server,app)
     
 
         print('*************************************')
@@ -267,24 +180,6 @@ def optimize_MPC(m,config):
             print('No successful solution found.')
             iterations = 0#[int(s) for s in [s for s in solver_output if "Iterations" in s][0].split() if s.isdigit()][0]  
             objfcnval = 0 
-        
-    #    # Grab infeasibility file if failed
-    #    if(success_check==0):
-    #        # Create intermediates folder if needed
-    #        path = config['file']['new_path'] + '/Infeasibilities' 
-    #        if not os.path.exists(path):
-    #            os.makedirs(path)
-    #            
-    #        filename_inf = '/infeasibilities' + '{:%Y_%m_%d_%H_%M_%S}'.format(datetime.datetime.now()) + '_iteration_'+str(i)+'.txt'      
-    #
-    #        apm_get(server,app,'infeasibilities.txt')
-    #        
-    #        try:
-    #            shutil.move('infeasibilities.txt',path+filename_inf)
-    #        except:
-    #            print('Could not retrieve infeasibilities.txt.')    
-    #        
-    #        sys.exit()
        
 #%%
         # Retry solve if we failed the first time
@@ -347,46 +242,31 @@ def optimize_MPC(m,config):
                    'd', 'c_d', 'c_d_p', 'cl', 'rho', 'mu', 't_air', 're', 'nh', 'nv', 'nu_prop', 't', 'flux', 'g_sol', 'mu_solar', 'azimuth', 'zenith', 'sn1', 'sn2', 'sn3', 'sunset', 'mu_clipped', 
                    'mu_slack', 'timestamp', 'iterations', 'objfcnval', 'successful_solution', 
                    'iteration_time', 're-solve']
-            columns_gekko = ['time', 'tp', 'phi', 'theta', 'alpha', 'gamma', 'psi', 'v', 'x', 'y', 'h', 'dist', 'te', 'ebatt', 'pbat', 'pn', 'psolar', 'ptotal', 'panelefficiency',
-                   'd', 'c_d', 'cdp', 'cl', 'rho', 'mu', 'tair', 're', 'nh', 'nv', 'nuprop', 't', 'flux', 'gsol', 'musolar', 'azimuth', 'zenith', 'sn1', 'sn2', 'sn3', 'sunset', 'muclipped', 
-                   'muslack', 'timestamp', 'iterations', 'objfcnval', 'successful_solution', 
-                   'iteration_time', 're-solve']
         else:
             columns = ['time', 'tp', 'phi', 'theta', 'alpha', 'beta', 'gamma', 'psi','chi', 'v_g', 'v_a', 'x', 'y', 'h', 'dx', 'dy' ,'dist', 'te', 'e_batt', 'p_bat', 'p_n', 'p_solar', 'ptotal', 'panel_efficiency',
                    'd', 'cd', 'c_d_p', 'cl', 'rho', 'mu', 'tair', 're', 'nh', 'nv', 'nu_prop', 't', 'flux', 'g_sol', 'mu_solar', 'azimuth', 'zenith', 'sn1', 'sn2', 'sn3','w_n','w_e','w_d', 'sunset', 'mu_clipped', 
                    'mu_slack', 'timestamp', 'iterations', 'objfcnval', 'successful_solution', 
                    'iteration_time', 're-solve']
-            columns_gekko = ['time', 'tp', 'phi', 'theta', 'alpha', 'beta', 'gamma', 'psi','chi', 'vg', 'va', 'x', 'y', 'h', 'dx', 'dy', 'dist', 'te', 'ebatt', 'pbat', 'pn', 'psolar', 'ptotal', 'panelefficiency',
-                   'd', 'cd', 'cdp', 'cl', 'rho', 'mu', 'tair', 're', 'nh', 'nv', 'nuprop', 't', 'flux', 'gsol', 'musolar', 'azimuth', 'zenith', 'sn1', 'sn2', 'sn3','wn','we','wd', 'sunset', 'muclipped', 
-                   'muslack', 'timestamp', 'iterations', 'objfcnval', 'successful_solution', 
-                   'iteration_time', 're-solve']
-    # Backup for validation
-    #    columns = ['time', 'tp', 'phi', 'view_theta', 'alpha', 'gamma', 'psi', 'v', 'x', 'y', 'h', 'dist', 'te', 'e_batt', 'p_bat', 'view_p_n', 'view_p_solar', 
-    #               'view_panel_efficiency', 'view_d', 'view_cd', 'cap_cl', 'rho', 'view_m', 'view_nh', 'view_nv', 'view_nu_prop', 't', 'flux', 'view_g_sol', 
-    #               'view_mu', 'azimuth', 'zenith', 'sn1', 'sn2', 'sn3', 'sunset', 'mu_clipped', 'mu_slack', 'intb', 'slk_12', 'timestamp', 'iterations', 'objfcnval', 'sol_returned', 'successful_solution', 'error_message','iteration_time','resolve']
-    
+
+
         solData_custom = solData[columns]
-    #    solData_custom['time'] = (i+1)*time_step # Need to also add first time-step at some time
         solData_custom['time'] = solData_custom['t'] - start_time * 3600
         solData_custom.columns = columns
-    #    dataOut = dataOut.append(solData) # Added correction here
-        dataOut = dataOut.append(solData_custom) # Added correction here
+        dataOut = dataOut.append(solData_custom)
         
         print('Iteration Time: ' +str(tm.time()-iter_start))
-        if(i%save_freq==0): # Changed to save every 50 iterations instead of every 100
+        if(i%save_freq==0): #
             ## Results to File
             print('Saving Intermediate Results...')
             
             # Create intermediates folder if needed
-            path = config['file']['new_path'] + '/Intermediates' 
+            path = os.path.join(config['file']['results_folder'] , 'Intermediates' )
             if not os.path.exists(path):
                 os.makedirs(path)
                 
             filename_out = '/iter_'+str(i).zfill(4)+'.xlsx'      
-    #        dataOut_custom = dataOut[['time', 'tp', 'phi', ]]
+
             dataOut_custom = dataOut[columns]
-    #        column_names = ['time]', 
-    #        dataOut.to_excel(path + filename_out,index=False)
             dataOut_custom.to_excel(path + filename_out,index=False)
             
             # Clean up old files
@@ -399,43 +279,24 @@ def optimize_MPC(m,config):
                     except:
                         pass
                 
-            
-        # Update status on webpage
-        # Requires J drive is mapped
-        if(i%config['optimization']['status_update_frequency']==0):
-            name = time_stamp
-            hour = np.round(solData_custom.time.iloc[-1]/3600.0,2)
-            percent = int(np.round((hour/24.0*100)))
-            iteration = i/time_shift
-            failed = (len(dataOut) - dataOut['successful_solution'].sum() - 1)/time_shift
-            last_ten = (len(dataOut['successful_solution'].tail(10*time_shift)) - dataOut['successful_solution'].tail(10*time_shift).sum())/time_shift
-            TE = np.round(float(solData.te.iloc[-1]),1)
-            runTime = np.round((tm.time()-start)/3600.0,1)
-            description = config['file']['description']
-            try:
-                updateStatus(name,hour,percent,iteration,failed,last_ten,TE,runTime,description)
-            except:
-                print('J drive not mapped, cannot update status.')
-            if(last_ten==10):
+        
+        # Check for repeated failed solutions
+        last_ten = (len(dataOut['successful_solution'].tail(10*time_shift)) - dataOut['successful_solution'].tail(10*time_shift).sum())/time_shift
+        if(last_ten==10):
                 print('!!!!!!!!!! Ten failed solutions in a row.  Shutting down. !!!!!!!!!!!!!')
                 sys.exit()
+        
     
     #%%
     
     ## Results to File
-    filename_out = './opt_results_' + '{:%Y_%m_%d_%H_%M_%S}'.format(datetime.datetime.now()) + '.xlsx' # Saves in current folder
-    #dataOut.to_excel(filename_out,index=False)
+    filename_out = os.path.join(config['file']['results_folder'],'./opt_results_' + '{:%Y_%m_%d_%H_%M_%S}'.format(datetime.datetime.now()) + '.xlsx')
     dataOut_custom.to_excel(filename_out,index=False)
     print('Results retrieved')
     
     end = tm.time()
     solveTime = end - start
     start = tm.time()
-    
-    #%%
-    print('Plotting...')
-    # Plot 3D Path
-    plot3DPath(dataOut_custom, 1)
     
     end = tm.time()
     plotTime = end - start

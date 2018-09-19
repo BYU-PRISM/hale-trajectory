@@ -2,7 +2,6 @@
 from gekko import GEKKO
 import datetime
 import numpy as np
-from atmosphere import getAtmosphere
 
 def init_model(config):
 
@@ -53,13 +52,29 @@ def init_model(config):
         dsa = 5.8328354781017406E+03
         dsb = -1.6309313517819710E+01
     elif(config['aircraft']['name'] == 'Aquila E216'):
-        dsa = 9.6878064972771682E-02
-        dsb = -1.1914394969415213E-02
-        dsc = 1.4658946775121501E-07
-        dsd = -7.4933620263012425E-09
-        dsf = -1.6444247419782368E-01
-        dsg = 3.9791780146017000E-05
-        dsh = -4.1825694373660372E-06
+        dsa = -5.7190133637197167E+07
+        dsb = 1.0906824839174636E+07
+        dsc = -3.0009432623030330E+02
+        dsd = -1.7444861027294422E+01
+        dsf = 1.1140033718391079E+08
+        dsg = -2.5839992226450522E+04
+        dsh = 1.8647534000558155E+03
+    elif(config['aircraft']['name'] == 'Aquila E216 New'):
+        dsa = 6.4481559973709565E-02
+        dsb = -1.8784155229511873E-07
+        dsc = 1.7932659465086720E-13
+        dsd = -1.1138505718328709E-02
+        dsf = 3.7504655548703261E-08
+        dsg = -3.1059181794933706E-14
+        dsh = 1.0975313832298184E-03
+        dsi = -2.3679608054684811E-09
+        dsj = 1.5846194439048924E-15
+        lsa = 3.7742114873404853E-01
+        lsb = 1.2431611459242210E-01
+        lsc = 7.6461542484034933E-07
+        lsd = -5.6822813708386566E-03
+        lsf = -6.4455385473394244E-13
+        lsg = -2.6505858038599027E-08
     
     # Propeller Efficiency
     R_prop = config['aircraft']['propeller_radius']['value'] # Propeller Radius (m) - Kevin
@@ -127,50 +142,28 @@ def init_model(config):
     #%% Variables
     
     # Atmospheric Effects
-    h = m.CV(name='h',value=h_0,lb=config['trajectory']['h']['min']*0.98,ub=config['trajectory']['h']['max']*1.02) # Height from sea level (m) (27432 m = 90,000 ft, 18288 m = 60,000 ft)
-    
-    
-#    # Prepare atmosphere data for spline
-#    hlist = np.linspace(15000,30000)
-#    rhoData = np.zeros(len(hlist))
-#    T_airData = np.zeros(len(hlist))
-#    muData = np.zeros(len(hlist))
-#    for i,hval in enumerate(hlist):
-#        rho,pressure,T_air,mu,kinematicViscosity = getAtmosphere(hval)
-#        rhoData[i] = rho
-#        T_airData[i] = T_air
-#        muData[i] = mu
-#    # Create splines
-#    rho_s = m.Var(name='rho')
-#    T_air_s = m.Var(name='T_air')
-#    mu_s = m.Var(name='mu')
-#    m.cspline(h,rho_s,hlist,rhoData,False)
-#    m.cspline(h,T_air_s,hlist,T_airData,False)
-#    m.cspline(h,mu_s,hlist,muData,False)
+    h = m.Var(name='h',value=h_0,lb=config['trajectory']['h']['min'],ub=config['trajectory']['h']['max']) # Height from sea level (m) (27432 m = 90,000 ft, 18288 m = 60,000 ft)
     
     # Flight Dynamics
-    x = m.Var(name='x',value=0) # Horizontal distance (m)
-    y = m.Var(name='y',value=-3000) # Other horizontal distance
     if(config['wind']['use_wind']):
         v_a = m.Var(name='v_a',value=v_a0,lb=0) # Velocity (m/s)
-        v_g = m.Var(name='v_g',value=v_g0,lb=0) # Velocity (m/s)
+        v_g = m.Var(name='v_g',value=v_g0) # Velocity (m/s)
         chi = m.Var(name='chi',value=psi_0) # Heading angle
-        h_a = m.Var(value=h.value,name='h_a')
-        x_a = m.Var(value=x.value,name='x_a')
-        y_a = m.Var(value=y.value,name='y_a')
     else:
         v = m.Var(name='v',value=v_0,lb=0) # Velocity (m/s)
         psi = m.Var(name='psi',value=psi_0) # Heading angle
     gamma = m.Var(name='gamma',value=gamma_0,lb=-0.085,ub=0.085) # Flight path angle (rad) - previously >= -1 <= 1
-    
+    x = m.Var(name='x',value=0) # Horizontal distance (m)
+    y = m.Var(name='y',value=-3000) # Other horizontal distance
     dist = m.CV(name='dist',value=m.sqrt(x**2+y**2),lb=0,ub=max_dist*1.1)
-#    dist = m.CV(name='dist',value=x**2/(3000**2)+y**2/(30000**2),lb=0,ub=1.0001)
     if(config['aircraft']['name'] == 'Aquila'):
-        cl = m.CV(name='cl',value=0.0945*alpha_0*180/pi+0.6555,ub=1.55)
+        cl = m.Var(name='cl',value=0.0945*alpha_0*180/pi+0.6555)
     elif(config['aircraft']['name'] == 'Helios'):
-        cl = m.CV(name='cl',value=0.099*alpha_0*180/pi+0.041,ub=1.55)
+        cl = m.Var(name='cl',value=0.099*alpha_0*180/pi+0.041)
     elif(config['aircraft']['name'] == 'Aquila E216'):
-        cl = m.CV(name='cl',value=0.095*alpha_0*180/pi+0.727,ub=1.55)
+        cl = m.Var(name='cl',value=0.095*alpha_0*180/pi+0.727)
+    elif(config['aircraft']['name'] == 'Aquila E216 New'):
+        pass # We'll define this after we calculate Re
     
     # Solar
     mu_clipped = m.Var(name='mu_clipped',value=0,lb=0)
@@ -180,18 +173,6 @@ def init_model(config):
     e_batt = m.Var(name='e_batt',value=E_Batt_0,ub=E_batmax) # Energy stored in battery (MJ)
     te = m.Var(name='te',value=E_Batt_0+mass*g*(h-h_0)*1e-6) # Total energy (MJ)
     p_total = m.Var(name='p_total',value=0,lb=0)
-#    if(config['aircraft']['name'] == 'Aquila' or config['aircraft']['name'] == 'Aquila E216'):
-#        P_N = m.Var(name='P_N',0,ub=4000*4)
-#    elif(config['aircraft']['name'] == 'Helios'):
-#        P_N = m.Var(name='P_N',0,ub=1500*14)
-    workD = m.Var(value=0,name='workD')
-    workTp = m.Var(value=0,name='workTp')
-    if(config['wind']['use_wind']):
-        KE = m.Var(value=0.5*mass*v_g**2,name='KE')
-    else:
-        KE = m.Var(value=0,name='KE')
-    PE = m.Var(value=0,name='PE')
-    E_balance = m.Var(value=KE+PE+workD+workTp,name='E_balance')
     
     
     #%% End Variables
@@ -204,15 +185,9 @@ def init_model(config):
     rho = m.Intermediate(rho_11*m.exp(-(g/(R_air*T_11))*(h-11000)),'rho')
     T_air = m.Intermediate(-56.46+273.15,'T_air')
     mu = m.Intermediate(1.458e-6*m.sqrt(T_air)/(1+110.4/T_air),'mu') # Dynamic viscosity of air (kg/(m s))
-#    rho = rho_s
-#    T_air = T_air_s
-#    mu = mu_s
-    
     
     # Pitch from AoA
     theta = m.Intermediate(gamma+alpha,'theta')
-    
-    hdot = m.Intermediate(h.dt(),'hdot')
     
     if(config['wind']['use_wind']):
         v_w = m.Intermediate(m.sqrt(w_n**2+w_e**2+w_d**2),'v_w')
@@ -234,6 +209,11 @@ def init_model(config):
         Re = m.Intermediate(rho*v_a*chord/mu,'Re') # Reynolds number
     else:
         Re = m.Intermediate(rho*v*chord/mu,'Re') # Reynolds number
+        
+    alpha0_deg = alpha_0*180/pi
+    
+    if(config['aircraft']['name'] == 'Aquila E216 New'):
+        cl = m.Var(name='cl',value=lsa+lsb*alpha0_deg+lsc*Re+lsd*alpha0_deg**2+lsf*Re**2+lsg*alpha0_deg*Re)
     
     ### Parasitic drag from xflr5
     alpha_deg = m.Intermediate(alpha*180/pi,'alpha_deg')
@@ -242,14 +222,11 @@ def init_model(config):
     elif(config['aircraft']['name'] == 'Helios'):
         C_D_p = m.Intermediate(dsa * Re**(-1) + dsb * alpha_deg**(2) * Re**(-1),'C_D_p')
     elif(config['aircraft']['name'] == 'Aquila E216'):
-        C_D_p = m.Intermediate((dsa + dsb*alpha_deg + dsc*Re + dsd*alpha_deg*Re) / (1.0 + dsf*alpha_deg + dsg*Re + dsh*alpha_deg*alpha_deg),'C_D_p')
-    
-    # Oswald efficiency factor
-    k_e = m.Intermediate(0.4*C_D_p,'k_e')
-    e_o = m.Intermediate(1/((pi*AR*k_e)+(1/es)),'e_o')
-    # Drag coefficient
-    C_D = m.Intermediate(C_D_p+cl**2/(pi*AR*e_o),'C_D')
-#    cd = m.Intermediate(C_D,'cd') # Added for data handling
+        C_D = m.Intermediate((dsa + dsb*alpha_deg + dsc*Re + dsd*alpha_deg*Re) / (1.0 + dsf*alpha_deg + dsg*Re + dsh*alpha_deg*Re),'C_D')
+        C_D_p = m.Intermediate(0,'C_D_p') # Just set this to zero to avoid errors in the data recording.
+    elif(config['aircraft']['name'] == 'Aquila E216 New'):
+        C_D = m.Intermediate(dsa + dsb*Re + dsc*Re**2+dsd*alpha_deg+dsf*alpha_deg*Re+dsg*alpha_deg*Re**2+dsh*alpha_deg**2+dsi*alpha_deg**2*Re+dsj*alpha_deg**2*Re**2,'C_D')
+        C_D_p = m.Intermediate(0,'C_D_p') # Just set this to zero to avoid errors in the data recording.
     
     #### Flight Dynamics
     if(config['wind']['use_wind']):
@@ -266,9 +243,9 @@ def init_model(config):
     ### Propeller Max Theoretical Efficiency
     Adisk = m.Intermediate(pi*R_prop**2,'Adisk') # Area of disk
     if(config['wind']['use_wind']):
-        e_prop = m.Intermediate(2.0/(1.0+(D/(Adisk*v_a**2.0*rho/2.0)+1.0)**0.5),'e_prop')
+        e_prop = m.Intermediate(2.0/(1.0+(tp/(Adisk*v_a**2.0*rho/2.0)+1.0)**0.5),'e_prop')
     else:
-        e_prop = m.Intermediate(2.0/(1.0+(D/(Adisk*v**2.0*rho/2.0)+1.0)**0.5),'e_prop')
+        e_prop = m.Intermediate(2.0/(1.0+(tp/(Adisk*v**2.0*rho/2.0)+1.0)**0.5),'e_prop')
     nu_prop = m.Intermediate(e_prop*e_motor,'nu_prop')
     
     ### Power
@@ -290,7 +267,7 @@ def init_model(config):
     nn = m.Intermediate(m.sqrt(n1**2+n2**2+n3**2),'nn')
     mu_solar = m.Intermediate(sn1*n1/nn+sn2*n2/nn+sn3*n3/nn,'mu_solar')
     G_sol = m.Intermediate(flux*mu_clipped,'G_sol') # Orientation adjusted solar flux (W/m^2)
-    if(config['aircraft']['name'] == 'Aquila' or config['aircraft']['name'] == 'Aquila E216'):
+    if(config['aircraft']['name'] == 'Aquila' or config['aircraft']['name'] == 'Aquila E216' or config['aircraft']['name'] == 'Aquila E216 New'):
         panel_efficiency = m.Intermediate(eta_s*(1-beta_s*(T_11-Tref+(T_noct-20)*G_sol/G_noct)+gamma_s*m.log10(G_sol+0.01)),'panel_efficiency') # Solar panel efficiency (Nathaniel)
     elif(config['aircraft']['name'] == 'Helios'):
         panel_efficiency = m.Intermediate(config['solar']['panel_efficiency'],'panel_efficiency')
@@ -312,11 +289,7 @@ def init_model(config):
         m.Equation(h.dt()==v_g*m.sin(gamma))
         m.Equation(x.dt()==v_g*m.cos(chi)*m.cos(gamma))
         m.Equation(y.dt()==v_g*m.sin(chi)*m.cos(gamma))
-        m.Equation(h_a.dt()==v_a*m.sin(gamma_a))
-        m.Equation(x_a.dt()==v_a*m.cos(psi)*m.cos(gamma_a))
-        m.Equation(y_a.dt()==v_a*m.sin(psi)*m.cos(gamma_a))
         m.Equation(dist==m.sqrt(x**2+y**2))
-#        m.Equation(dist==x**2/(3000**2)+y**2/(30000**2))
         m.Equation(v_a == m.sqrt(v_g**2-2*v_g*(w_n*m.cos(chi)*m.cos(gamma)+w_e*m.sin(chi)*m.cos(gamma)-w_d*m.sin(gamma))+v_w**2))
     else:
         m.Equation(v.dt()==((tp-D)/(mass*g)-m.sin(gamma))*g)
@@ -326,7 +299,6 @@ def init_model(config):
         m.Equation(x.dt()==v*m.cos(psi)*m.cos(gamma))
         m.Equation(y.dt()==v*m.sin(psi)*m.cos(gamma))
         m.Equation(dist==m.sqrt(x**2+y**2))
-#        m.Equation(dist==x**2/(12000**2)+y**2/(3000**2))
     
     # Power
     m.Equation(e_batt.dt()==p_bat*1e-6) # (Convert to MJ) p_bat is the charging rate of the battery.
@@ -337,19 +309,6 @@ def init_model(config):
     m.Equation(mu_clipped==mu_solar+mu_slack)
     m.Equation(mu_clipped*mu_slack<=1e-4)
     
-    # Energy Balance
-    if(config['wind']['use_wind']):
-        m.Equation(workD.dt()==D*v_g)
-        m.Equation(workTp.dt()==tp*v_g)
-        m.Equation(KE.dt()==v_g*mass*v_g.dt())
-        m.Equation(PE.dt()==mass*g*h.dt())
-    else:
-        m.Equation(workD.dt()==D*v)
-        m.Equation(workTp.dt()==tp*v)
-        m.Equation(KE.dt()==v*mass*v.dt())
-        m.Equation(PE.dt()==mass*g*h.dt())
-    m.Equation(E_balance == KE+PE+workD+workTp)
-    
 
     # Constraints
     if(config['aircraft']['name'] == 'Aquila'):
@@ -357,29 +316,13 @@ def init_model(config):
     elif(config['aircraft']['name'] == 'Helios'):
         m.Equation(cl==0.099*alpha*180/pi+0.041)
     elif(config['aircraft']['name'] == 'Aquila E216'):
-        m.Equation(cl==0.095*alpha_0*180/pi+0.727)
-        
-#    if(config['wind']['use_wind']):
-#        m.Equation(P_N == P_payload+v_a*tp/nu_prop)
-#    elif(config['aircraft']['name'] == 'Helios'):
-#        m.Equation(P_N == P_payload+v*tp/nu_prop)
+        m.Equation(cl==0.095*alpha*180/pi+0.727)
+    elif(config['aircraft']['name'] == 'Aquila E216 New'):
+        m.Equation(cl==lsa+lsb*alpha_deg+lsc*Re+lsd*alpha_deg**2+lsf*Re**2+lsg*alpha_deg*Re)
     
     # Objective
     m.Obj(-te)
-    
-    # Weight with previous solution
-    m.x_prev = m.Param()
-    m.y_prev = m.Param()
-    m.h_prev = m.Param()
-    m.gamma_prev = m.Param()
-    m.convex_weight = m.Param()
-    m.convex_horizon = m.Param()
-    
-    m.Obj((x-m.x_prev)**2*m.convex_weight*m.convex_horizon)
-    m.Obj((y-m.y_prev)**2*m.convex_weight*m.convex_horizon)
-    m.Obj((h-m.h_prev)**2*m.convex_weight*m.convex_horizon)
-    m.Obj((gamma-m.gamma_prev)**2*m.convex_weight*m.convex_horizon)
-    
+#    m.Obj(-e_batt)
     
     #%% End Equations
     
@@ -415,12 +358,6 @@ def init_model(config):
         m.chi = chi
         m.v_a = v_a
         m.v_g = v_g
-        m.x_a = x_a
-        m.y_a = y_a
-        m.h_a = h_a
-        m.w_n = w_n
-        m.w_e = w_e
-        m.w_d = w_d
     else:
         m.v=v
     

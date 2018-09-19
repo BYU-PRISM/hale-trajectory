@@ -1,9 +1,7 @@
 from __future__ import division
 import numpy as np
 from numpy import pi, sqrt, cos, sin, exp, tan, log10
-from CombinedSolar import solarFlux
-from atmosphere import getAtmosphere
-import pandas as pd
+from solar_functions import solarFlux
 
 def uavDynamicsWrapper(a1,a2,a3,h_0,v_0,smartsData,config_file,mode):
     '''
@@ -188,13 +186,48 @@ def model(t,v,gamma,psi,h,x,y,E_batt,Tp_0,alpha_0,phi_0,smartsData,config_file,m
         dsa = 5.8328354781017406E+03
         dsb = -1.6309313517819710E+01
     elif(config['aircraft']['name'] == 'Aquila E216'):
-        dsa = 9.6878064972771682E-02
-        dsb = -1.1914394969415213E-02
-        dsc = 1.4658946775121501E-07
-        dsd = -7.4933620263012425E-09
-        dsf = -1.6444247419782368E-01
-        dsg = 3.9791780146017000E-05
-        dsh = -4.1825694373660372E-06
+#        dsa = 9.6878064972771682E-02
+#        dsb = -1.1914394969415213E-02
+#        dsc = 1.4658946775121501E-07
+#        dsd = -7.4933620263012425E-09
+#        dsf = -1.6444247419782368E-01
+#        dsg = 3.9791780146017000E-05
+#        dsh = -4.1825694373660372E-06
+        dsa = -5.7190133637197167E+07
+        dsb = 1.0906824839174636E+07
+        dsc = -3.0009432623030330E+02
+        dsd = -1.7444861027294422E+01
+        dsf = 1.1140033718391079E+08
+        dsg = -2.5839992226450522E+04
+        dsh = 1.8647534000558155E+03
+    elif(config['aircraft']['name'] == 'Aquila E216 New'):
+        #        dsa = 3.6931693916886783E-02
+#        dsb = -3.3910332597732348E-08
+#        dsc = -4.6884537749472986E-03
+#        dsd = 5.6626758945071221E-09
+#        dsf = 6.6464935071980705E-04
+#        dsg = -4.0038322876284999E-10
+        dsa = 6.4481559973709565E-02
+        dsb = -1.8784155229511873E-07
+        dsc = 1.7932659465086720E-13
+        dsd = -1.1138505718328709E-02
+        dsf = 3.7504655548703261E-08
+        dsg = -3.1059181794933706E-14
+        dsh = 1.0975313832298184E-03
+        dsi = -2.3679608054684811E-09
+        dsj = 1.5846194439048924E-15
+#        lsa = 3.8085901707842790E-01
+#        lsb = 8.7610993146127927E-02
+#        lsc = 7.1817303788382137E-07
+#        lsd = -1.6655963882298553E-03
+#        lsf = -4.6250503427103240E-13
+#        lsg = -1.3560528036942381E-08
+        lsa = 3.7742114873404853E-01
+        lsb = 1.2431611459242210E-01
+        lsc = 7.6461542484034933E-07
+        lsd = -5.6822813708386566E-03
+        lsf = -6.4455385473394244E-13
+        lsg = -2.6505858038599027E-08
     
     # Propeller Efficiency
     R_prop = config['aircraft']['propeller_radius']['value'] # 2.0 # Propeller Radius (m) - Kevin
@@ -212,15 +245,14 @@ def model(t,v,gamma,psi,h,x,y,E_batt,Tp_0,alpha_0,phi_0,smartsData,config_file,m
     
     #### Atmospheric Effects
 #    if(h<25000):
-    rho,pressure,T_air,mu,kinematicViscosity = getAtmosphere(h)
-#    rho = rho_11 * exp(-(g/(R_air*T_11))*(h-11000)) # Air density (kg/m**3)
-#    T_air = -56.46 + 273.15 # Air temperature (K)
+    rho = rho_11 * exp(-(g/(R_air*T_11))*(h-11000)) # Air density (kg/m**3)
+    T_air = -56.46 + 273.15 # Air temperature (K)
 #    else:
 #        T_air = -131.21+0.00299*h # Air temp (K)
 #        P_air = 2.488*((T_air + 273.15)/216.6)**(-11.388)
 #        rho = (P_air / (0.2869 * (T_air + 273.15)))
         
-#    mu = 1.458e-6*sqrt(T_air)/(1+110.4/T_air) # Dynamic viscosity of air (kg/(m s))
+    mu = 1.458e-6*sqrt(T_air)/(1+110.4/T_air) # Dynamic viscosity of air (kg/(m s))
 #    mu = 1.4397e-5
     
     # Pitch from AoA
@@ -229,6 +261,9 @@ def model(t,v,gamma,psi,h,x,y,E_batt,Tp_0,alpha_0,phi_0,smartsData,config_file,m
     # Alpha in degress for fits
     alpha_deg = np.degrees(alpha)
     
+    # Flat plate Reynolds number
+    Re = rho*v*chord/mu # Reynolds number
+    
     # CL from AoA, Lift slope line from xflr5
 #    cl = (1.59-0.656)/(10-0)*(alpha*180/pi-0)+0.656
     if(config['aircraft']['name']=='Aquila'):
@@ -236,13 +271,16 @@ def model(t,v,gamma,psi,h,x,y,E_batt,Tp_0,alpha_0,phi_0,smartsData,config_file,m
     elif(config['aircraft']['name']=='Helios'):
         cl = 0.099*alpha_deg + 0.041
     elif(config['aircraft']['name'] == 'Aquila E216'):
-        cl = 0.095*alpha_0*180/pi+0.727
+        cl = 0.095*alpha_deg+0.727
+    elif(config['aircraft']['name'] == 'Aquila E216 New'):
+#        cl = 0.093*alpha_deg+0.364
+#        cl = lsa + lsb*alpha_deg + lsc*Re + lsd*(alpha_deg)**2 + lsf*Re**2 + lsg*alpha_deg*Re
+        cl = lsa+lsb*alpha_deg+lsc*Re+lsd*alpha_deg**2+lsf*Re**2+lsg*alpha_deg*Re
     
     #### Drag Model
     ### Top Surface
     ## Top Reynolds Numbers
-    # Flat plate Reynolds number
-    Re = rho*v*chord/mu # Reynolds number
+    
 #    # Top surface laminar region
 #    Re_Laminar_top = Re*xcrit_top
 #    # Top surface transition region
@@ -309,14 +347,20 @@ def model(t,v,gamma,psi,h,x,y,E_batt,Tp_0,alpha_0,phi_0,smartsData,config_file,m
     elif(config['aircraft']['name'] == 'Helios'):
         C_D_p = dsa * Re**(-1) + dsb * alpha_deg**(2) * Re**(-1)
     elif(config['aircraft']['name'] == 'Aquila E216'):
-        C_D_p = (dsa + dsb*alpha_deg + dsc*Re + dsd*alpha_deg*Re) / (1.0 + dsf*alpha_deg + dsg*Re + dsh*alpha_deg*alpha_deg)
+#        C_D_p = (dsa + dsb*alpha_deg + dsc*Re + dsd*alpha_deg*Re) / (1.0 + dsf*alpha_deg + dsg*Re + dsh*alpha_deg*Re)
+        C_D_p = 0
+        C_D = (dsa + dsb*alpha_deg + dsc*Re + dsd*alpha_deg*Re) / (1.0 + dsf*alpha_deg + dsg*Re + dsh*alpha_deg*Re)
+    elif(config['aircraft']['name'] == 'Aquila E216 New'):
+#        C_D = dsa+dsb*Re+dsc*alpha_deg+dsd*alpha_deg*Re+dsf*alpha_deg**2+dsg*alpha_deg**2*Re
+        C_D = dsa + dsb*Re + dsc*Re**2+dsd*alpha_deg+dsf*alpha_deg*Re+dsg*alpha_deg*Re**2+dsh*alpha_deg**2+dsi*alpha_deg**2*Re+dsj*alpha_deg**2*Re**2
+        C_D_p = 0 # Just set this to zero to avoid errors in the data recording.
     
     
     # Oswald efficiency factor
-    k_e = 0.4*C_D_p
-    e_o = 1/((pi*AR*k_e) + (1/es))
+#    k_e = 0.4*C_D_p
+#    e_o = 1/((pi*AR*k_e) + (1/es))
     # Drag coefficient
-    C_D = C_D_p + cl**2/(pi*AR*e_o)
+#    C_D = C_D_p + cl**2/(pi*AR*e_o)
     
     #### Flight Dynamics
     q = 1/2.0*rho*v**2 # Dynamic pressure (Pa)
@@ -329,7 +373,7 @@ def model(t,v,gamma,psi,h,x,y,E_batt,Tp_0,alpha_0,phi_0,smartsData,config_file,m
     
     ### Propeller Max Theoretical Efficiency
     Adisk = pi * R_prop**2 # Area of disk
-    e_prop = 2.0 / (1.0 + ( D / (Adisk * v**2.0 * rho/2.0) + 1.0 )**0.5)
+    e_prop = 2.0 / (1.0 + ( Tp / (Adisk * v**2.0 * rho/2.0) + 1.0 )**0.5)
     nu_prop = e_prop * e_motor
     
     #### Power
@@ -433,7 +477,6 @@ def model(t,v,gamma,psi,h,x,y,E_batt,Tp_0,alpha_0,phi_0,smartsData,config_file,m
                      'p_n':P_N,
                      'p_bat':P_bat,
                      'd':D,
-                     'l':L,
                      'cd':C_D,
                      'c_d_p':C_D_p,
                      'cl':cl,

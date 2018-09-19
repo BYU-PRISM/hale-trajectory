@@ -21,6 +21,7 @@ import yaml
 import os
 import progressbar # pip install progressbar2
 import state_setting
+import pickle
 
 #%% Choose automatic or manual mode
 
@@ -55,7 +56,7 @@ elif mode=='manual':
     time_stamp = folder_name[5:]
     file_name = 'config_file_' + time_stamp + '.yml'
     cwd = os.getcwd()
-    os.chdir(cwd+'/Data/'+folder_name+'/')
+    os.chdir(cwd+'/Results/'+folder_name+'/')
     with open(file_name, 'r') as ifile:
         config_file = yaml.load(ifile)
     config = config_file
@@ -98,11 +99,57 @@ zone = config['solar'][solar_data]['zone'] # -7
 smartsData = loadSmartsData(lat,lon,elevation, altitude, year,
               month, day, zone)
 
+def save_obj(obj, name ):
+    with open('obj/'+ name + '.pkl', 'wb') as f:
+        pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
+
+def load_obj(name ):
+    with open('obj/' + name + '.pkl', 'rb') as f:
+        return pickle.load(f)
+
 # Initialize state machine
 state_setting.init()
 
+hrange = np.arange(18288,26000,250)
+#hrange = np.append(hrange,26000)
+
 # Compute MV values for state machine
 print('{:%H:%M:%S}'.format(datetime.datetime.now()) + ' Making MV list')
+
+# Level Flight values
+Tplist = []
+alphalist = []
+philist = []
+hlist = []
+vlist = []
+config_file['trajectory']['gamma']['mode'] = 'level'
+v0 = config['trajectory']['v']['ss_initial_guess']
+x_guess = x0.copy()
+swarm = 1
+for h in hrange:
+    print('Level Altitude ' + str(h))
+    vmin,Tpmin,alphamin,phimin,clmin,pmin = findSteadyState(x_guess,h,v0,smartsData,config_file,swarm)
+    hlist.append(h)
+    alphalist.append(alphamin)
+    philist.append(phimin)
+    Tplist.append(Tpmin)
+    v0 = vmin
+    vlist.append(vmin)
+    print(v0)
+    x_guess = [Tpmin,alphamin,phimin]
+    if(h==18288):
+        x_guess_next = x_guess
+    swarm = 0
+config_file['hlistlevel'] = hlist
+config_file['Tplistlevel'] = Tplist
+config_file['philistlevel'] = philist
+config_file['alphalistlevel'] = alphalist
+
+# Compute zero power glide angles for descent
+g = 9.80665 # Gravity (m/s**2)
+W = config_file['aircraft']['mass_total']['value']*g
+config_file['gammalistdown'] = -np.arcsin(np.array(Tplist)/np.array(W))*0.999
+
 # Climbing values
 Tplist = []
 alphalist = []
@@ -111,10 +158,12 @@ hlist = []
 vlist = []
 config_file['trajectory']['gamma']['mode'] = 'up'
 v0 = config['trajectory']['v']['ss_initial_guess']
-#x_guess = x0.copy()
-for h in range(18288,27000,1000):
+
+x_guess = x_guess_next.copy()
+swarm = 1
+for h in hrange:
     print('Climb Altitude ' + str(h))
-    vmin,Tpmin,alphamin,phimin,clmin,pmin = findSteadyState(x0,h,v0,smartsData,config_file)
+    vmin,Tpmin,alphamin,phimin,clmin,pmin = findSteadyState(x_guess,h,v0,smartsData,config_file,swarm)
     hlist.append(h)
     alphalist.append(alphamin)
     philist.append(phimin)
@@ -122,7 +171,8 @@ for h in range(18288,27000,1000):
     vlist.append(vmin)
     v0 = vmin
     print(v0)
-#    x_guess = [alphamin,phimin,Tpmin]
+    x_guess = [Tpmin,alphamin,phimin]
+    swarm = 0
 config_file['hlistup'] = hlist
 config_file['Tplistup'] = Tplist
 config_file['philistup'] = philist
@@ -135,50 +185,29 @@ philist = []
 hlist = []
 config_file['trajectory']['gamma']['mode'] = 'down'
 v0 = config['trajectory']['v']['ss_initial_guess']
-#x_guess = x0.copy()
-for h in range(18288,27000,500):
+x_guess = x_guess_next.copy()
+swarm = 1
+for h in hrange:
     print('Dive Altitude ' + str(h))
-    vmin,Tpmin,alphamin,phimin,clmin,pmin = findSteadyState(x0,h,v0,smartsData,config_file)
+    vmin,Tpmin,alphamin,phimin,clmin,pmin = findSteadyState(x_guess,h,v0,smartsData,config_file,swarm)
     hlist.append(h)
     alphalist.append(alphamin)
     philist.append(phimin)
     Tplist.append(Tpmin)
     v0 = vmin
     print(v0)
-#    x_guess = [alphamin,phimin,Tpmin]
+    x_guess = [Tpmin,alphamin,phimin]
+    swarm = 0
 config_file['hlistdown'] = hlist
 config_file['Tplistdown'] = Tplist
 config_file['philistdown'] = philist
 config_file['alphalistdown'] = alphalist
 
-# Level Flight values
-Tplist = []
-alphalist = []
-philist = []
-hlist = []
-config_file['trajectory']['gamma']['mode'] = 'level'
-v0 = config['trajectory']['v']['ss_initial_guess']
-#x_guess = x0.copy()
-for h in range(18288,27500,500):
-    print('Level Altitude ' + str(h))
-    vmin,Tpmin,alphamin,phimin,clmin,pmin = findSteadyState(x0,h,v0,smartsData,config_file)
-    hlist.append(h)
-    alphalist.append(alphamin)
-    philist.append(phimin)
-    Tplist.append(Tpmin)
-    v0 = vmin
-    print(v0)
-#    x_guess = [alphamin,phimin,Tpmin]
-config_file['hlistlevel'] = hlist
-config_file['Tplistlevel'] = Tplist
-config_file['philistlevel'] = philist
-config_file['alphalistlevel'] = alphalist
-
 # Solve for steady state conditions
 print('{:%H:%M:%S}'.format(datetime.datetime.now()) + ' Finding Steady State')
 config_file['trajectory']['gamma']['mode'] = 'level'
 v0 = config['trajectory']['v']['ss_initial_guess']
-vmin,Tpmin,alphamin,phimin,clmin,pmin = findSteadyState(x0,h_0,v0,smartsData,config_file)
+vmin,Tpmin,alphamin,phimin,clmin,pmin = findSteadyState(x0,h_0,v0,smartsData,config_file,1)
 
 if config['trajectory']['initial_direction'] == 'Counterclockwise': # Otherwise, it does clockwise
     phimin = -phimin # Required in order to turn counterclockwise in absolute NE position, which is clockwise in xy
@@ -255,7 +284,7 @@ solDataOut.to_csv(filename, index=False)
 
 # Save out steady state solution
 simDataOut = solData[['time', 'tp', 'phi', 'theta', 'alpha', 'gamma', 'psi', 'v', 'x', 'y', 'h', 'dist', 'te', 'e_batt', 'e_batt_max', 'p_bat', 'p_n', 'p_solar', 'panel_efficiency',
-                      'd', 'cd', 'cl', 'rho', 're', 'm', 'nh', 'nv', 'nu_prop', 't', 'flux', 'g_sol', 'mu', 'azimuth', 'zenith', 'sn1', 'sn2', 'sn3']]
+                      'd', 'cd', 'cl', 'rho', 're', 'm', 'nh', 'nv', 'nu_prop', 't', 'flux', 'g_sol', 'mu', 'azimuth', 'zenith', 'sn1', 'sn2', 'sn3','state']]
 
 filenameSim = 'sm_results_' + str(time_stamp) + '.xlsx'
 simDataOut.to_excel(filenameSim, index=False)

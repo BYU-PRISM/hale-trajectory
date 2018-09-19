@@ -24,8 +24,6 @@ import os
 import numpy as np
 from optimize_MPC_config import optimize_MPC
 from init_model import init_model
-#from init_model_wind_level import init_model_wind_level
-from integrateSS_wrapper_wind import integrateSS_wrapper_wind
 
 cwd = os.getcwd()
 
@@ -33,10 +31,12 @@ time_stamp = str('{:%Y_%m_%d_%H_%M_%S}'.format(datetime.datetime.now()))
 
 run_whole_optimization = 1 ############### 1 = Yes, 0 = No
 
-if run_whole_optimization == 1:
-    option = '2' # Use custom values
-else:
-    option = str(input('Use Default or Custom Values? \n  1 - Default \n  2 - Custom\n  [1 or 2] : '))
+#if run_whole_optimization == 1:
+#    option = '2' # Use custom values
+#else:
+#    option = str(input('Use Default or Custom Values? \n  1 - Default \n  2 - Custom\n  [1 or 2] : '))
+#    
+option = '2'
 
 # check if option is equal to one of the strings, specified in the list
 if option=='1' : # Default values
@@ -56,28 +56,33 @@ if option=='1' : # Default values
     define_use_wind = True
     description = ''
 elif option=='2': # Custom values
-    n = 3
+#    n = 3.75 #2/3 #2.4 #7.5 #6 #5 #3.75 #3 #2 #1.5 #1.2 #1 #0.5ß
+    time_step = 8 # 15 # seconds int(30/n)
     distance = 3000
-    horizon_length = int(25*n*distance/3000) # 10 minutes
-    battery_mass = 140#142.5#139.5
-    total_mass = 213+battery_mass#355.5#352.5
-    time_step = int(30/n) # seconds
-    max_iterations = 3000
+    horizon = 15 # minutes (12.5 default)
+    horizon_length = int(horizon/time_step*60*distance/3000) # Number of timesteps
+    time_shift_time = 48*time_step # seconds !!! Must be a multiple of the timestep (rounds otherwise)
+    time_shift = int(np.round(time_shift_time/time_step)) #10 # Number of timesteps to shift forward
+    battery_mass = 136.7#113#141.1#153.9#141.1#142.5#139.5
+    total_mass = 213 + battery_mass #355.5#352.5
+    max_iterations = 10000
     initial_direction = 'Clockwise' # Options: 'Clockwise', 'Counterclockwise'
     server = 'https://byu.apmonitor.com' # 'https://xps.apmonitor.com' # 'http://127.0.0.1' # Other options
-#    server = 'https://xps.apmonitor.com'
     linear_solver = 'ma57' # Other options (only uses this in certain cases, depending on model file chosen)
     h_0 = 18288
     alpha_dmax = 6.5*np.pi/180.0/(30.0/time_step)
     alpha_dcost = 0.5/(30.0/time_step)*0.7*15
-    tp_dcost = 0.05/(30.0/time_step)/100*15
+    tp_dcost = 0.05/(30.0/time_step)/100*15#0.05/(30.0/time_step)/100*15
     phi_dcost = 0.5/(30.0/time_step)*15
     wind = [0,10,0]
     define_use_wind = False
-    time_shift = 10
-    gamma_factor = 1
-    name = 'Aquila'
-    description = 'Example Output Local'
+    gamma_factor = 2
+    use_sm = 0
+    name = 'Aquila E216 New'
+#    description = 'Winter' + ' Timestep '+str(time_step) + ' sec Timeshift ' + str(time_shift_time) + ' sec' #+ ' sec Horizon '+str(horizon) #+' Tp_dmax 25'
+#    description = 'Fall SM New Drag Battery 113'
+#    description = 'SM Fall Battery 136'
+    description = 'Test'
 
 else :
     print('Error: Please input 1 or 2.')
@@ -120,10 +125,10 @@ else:
 # Configure clockwise or counterclockwise start
 if initial_direction == 'Clockwise': # NOTE - this defintion is true relative to North and East, but the xy coordinates are flipped from this.
     initial_heading = 0
-    phi_0 = 0.0656
+    phi_0 = 0.034
 elif initial_direction == 'Counterclockwise':
     initial_heading = np.pi # 180 degrees
-    phi_0 = -0.0656
+    phi_0 = -0.034
 
 if (server == 'localhost' or server == 'http://127.0.0.1'):
     if(define_use_wind==True):
@@ -159,7 +164,7 @@ config = dict(
             ),
         h = dict(
             min = 18288, # 60,000 ft
-            max = 27432, # 25000, ~82,000 ft
+            max = 24289,#27432, # 25000, ~82,000 ft
             initial_value = h_0,
             units = 'm',
             ),
@@ -169,17 +174,17 @@ config = dict(
             units = 'm',
             ),
         v = dict(
-            ss_initial_guess = 30,
-            initial_value = 30,
+            ss_initial_guess = 33,
+            initial_value = 33,
             units = 'm/s',
             ),
         gamma = dict(
             max = float(np.radians(5)),
             min = float(np.radians(-5)),
             initial_value = 0,
-            up = 0.030/gamma_factor,#0.033/gamma_factor,
+            up = 0.04/gamma_factor,
             level = 0,
-            down = -.018/gamma_factor,#-0.026/gamma_factor,
+            down = -0.024/gamma_factor,
             mode = 'level',
             units = 'radians',
             description = 'flight path angle (pitch)',
@@ -196,20 +201,22 @@ config = dict(
         tp = dict(
             max = 500,
             min = 0.01,
-            dmax = 25/(30.0/time_step),
+            dmax = 50,#25,#/(30.0/time_step),
             dcost = tp_dcost,
-            ss_initial_guess = 110.54,
-            initial_value = 110.54, # Opt initial value for first timestep. This will be updated after the SS code is run
+            ss_initial_guess = 75,
+            initial_value = 87, # Opt initial value for first timestep. This will be updated after the SS code is run
             units = 'Newtons',
             description = 'Thrust',
             ),
         alpha = dict(
-            max = float(np.radians(9)),
-            min = float(np.radians(-2)),
+#            max = float(np.radians(8.3)),
+#            min = float(np.radians(0)),
+            max = float(np.radians(15)),
+            min = float(np.radians(-10)),
             dmax = alpha_dmax,
             dcost = alpha_dcost,
-            ss_initial_guess = 0.0874,
-            initial_value = 0.0874, # Opt initial value for first timestep. This will be updated after the SS code is run            
+            ss_initial_guess = 0.069,
+            initial_value = 0.047, # Opt initial value for first timestep. This will be updated after the SS code is run            
             units = 'radians',
             description = 'angle of attack',
             ),
@@ -367,7 +374,7 @@ config = dict(
         folder_name = 'hale_' + str(time_stamp) + ' - ' + description,
         configuration = 'config_file_' + str(time_stamp) +'.yml',
         original_path = cwd,
-        new_path = cwd + '/Data/' + 'hale_' + str(time_stamp) + ' - ' + description, # Change to not be computer specific
+        new_path = cwd + '/Results/' + 'hale_' + str(time_stamp) + ' - ' + description, # Change to not be computer specific
         model_file_template = model_file,
         ),
 )
@@ -380,23 +387,23 @@ config = dict(
 
 
 
-# Create new folder
-#newpath = cwd + '/Data/' + str(config['file']['folder_name'])
-newpath = config['file']['new_path']
-if not os.path.exists(newpath):
-    os.makedirs(newpath)
-
-os.chdir(newpath)
-
-# Save configuration file
-#with open('config_file_' + str(time_stamp) +'.yml', 'w') as outfile:
-with open(config['file']['configuration'], 'w') as outfile:
-    yaml.dump(config, outfile, default_flow_style=False) # What is default flow style?
-
-oldpath = config['file']['original_path']
-os.chdir(oldpath)
-
-print('Successfully created configuration file in hale_' + str(time_stamp))
+## Create new folder
+##newpath = cwd + '/Results/' + str(config['file']['folder_name'])
+#newpath = config['file']['new_path']
+#if not os.path.exists(newpath):
+#    os.makedirs(newpath)
+#
+#os.chdir(newpath)
+#
+## Save configuration file
+##with open('config_file_' + str(time_stamp) +'.yml', 'w') as outfile:
+#with open(config['file']['configuration'], 'w') as outfile:
+#    yaml.dump(config, outfile, default_flow_style=False) # What is default flow style?
+#
+#oldpath = config['file']['original_path']
+#os.chdir(oldpath)
+#
+#print('Successfully created configuration file in hale_' + str(time_stamp))
 
 
 #%% Run entire optimization script
@@ -405,9 +412,8 @@ if run_whole_optimization == 1:
     
     # Solve steady state
     if(define_use_wind==True):
-#        with open('integrateSS_wrapper_wind.py') as source_file:
-#            exec(source_file.read())
-        config = integrateSS_wrapper_wind(config)
+        with open('integrateSS_wrapper_wind.py') as source_file:
+            exec(source_file.read())
     else:
         with open('integrateSS_wrapper.py') as source_file:
             exec(source_file.read())
@@ -416,12 +422,7 @@ if run_whole_optimization == 1:
     m = init_model(config)
     # Optimize
     optimize_MPC(m,config)
-#    from line_profiler import LineProfiler
-#    lp = LineProfiler()
-#    lp_wrapper = lp(integrateSS_wrapper_wind)
-#    lp_wrapper(config)
-#    lp.print_stats()
-                
+            
 
 #%% Import yaml file and access data from it # Solve steady state
 #    if(define_use_wind==True):

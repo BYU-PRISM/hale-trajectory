@@ -19,7 +19,7 @@ from plotting import plot3DPath
 import datetime
 import yaml
 import os
-#import progressbar # pip install progressbar2
+import progressbar # pip install progressbar2
 
 #%% Choose automatic or manual mode
 
@@ -54,7 +54,7 @@ elif mode=='manual':
     time_stamp = folder_name[5:]
     file_name = 'config_file_' + time_stamp + '.yml'
     cwd = os.getcwd()
-    os.chdir(cwd+'/Data/'+folder_name+'/')
+    os.chdir(cwd+'/Results/'+folder_name+'/')
     with open(file_name, 'r') as ifile:
         config_file = yaml.load(ifile)
     config = config_file
@@ -137,10 +137,7 @@ t = np.arange(startTime*3600,startTime+3600*endTime+timeStep,timeStep) # t must 
 
 ## Integrate
 print('{:%H:%M:%S}'.format(datetime.datetime.now()) + ' Simulating...')
-start_int = tm.time()
 sol,output = odeint(uavDynamicsWrapper, SV0, t, args=(MV,h_0,[],smartsData,config_file,1),full_output=True)
-end_int = tm.time()-start_int
-print('Integration Time: ' + str(end_int))
 
 # Put solution in dataframe
 import pandas as pd
@@ -149,49 +146,13 @@ solData = pd.DataFrame(sol,columns=('v','gamma','psi','h','x','y','E_Batt'))
 #%%
 print('{:%H:%M:%S}'.format(datetime.datetime.now()) + ' Recovering Intermediates...')
 # Post process to recover the intermediates we want
-#intermediates = pd.DataFrame()
-#bar = progressbar.ProgressBar()
-#for i, time in enumerate(bar(t)):
-#    SV = solData.iloc[i,:]
-#    model_output = uavDynamicsWrapper(SV,time,MV,h_0,[],smartsData,config_file,5)
-#    model_output_df = pd.DataFrame(model_output,index=[i])
-#    intermediates = pd.concat([intermediates, model_output_df])
-
-## Pandas Tests
-#t = t[:100]
-#solData = solData.iloc[0:100,:]
-#solData['time'] = t
-#import time as tm
-#start = tm.time()
-#bar = progressbar.ProgressBar()
-#for i, time in enumerate(bar(t)):
-#    SV = solData.iloc[i,:]
-#    model_output = uavDynamicsWrapper(SV,[],MV,h_0,[],smartsData,config_file,5)
-#    model_output_df = pd.DataFrame(model_output,index=[i])
-#    intermediates = pd.concat([intermediates, model_output_df])
-#end1 = tm.time()-start
-#
-#start = tm.time()
-#for i, time in enumerate(t):
-#    SV = solData.iloc[i,:]
-#    model_output = uavDynamicsWrapper(SV,[],MV,h_0,[],smartsData,config_file,5)
-#    model_output_df = pd.DataFrame(model_output,index=[i])
-#    intermediates = pd.concat([intermediates, model_output_df])
-#end2 = tm.time()-start
-#
-#start = tm.time()
-#for SV in solData.iterrows():
-#    model_output = uavDynamicsWrapper(SV[1],[],MV,h_0,[],smartsData,config_file,5)
-#    model_output_df = pd.DataFrame(model_output,index=[i])
-#    intermediates = pd.concat([intermediates, model_output_df])
-#end3 = tm.time()-start
-
-start_intm = tm.time()
-solData['time'] = t
-model_outputs = [pd.Series(uavDynamicsWrapper(SV[1],[],MV,h_0,[],smartsData,config_file,5)).to_frame() for SV in solData.iterrows()]
-intermediates = pd.concat(model_outputs,axis=1,ignore_index=True).transpose()
-end4 = tm.time()-start_intm
-print('Intermediates Time: ' + str(end4))
+intermediates = pd.DataFrame()
+bar = progressbar.ProgressBar()
+for i, time in enumerate(bar(t)):
+    SV = solData.iloc[i,:]
+    model_output = uavDynamicsWrapper(SV,time,MV,h_0,[],smartsData,config_file,5)
+    model_output_df = pd.DataFrame(model_output,index=[i])
+    intermediates = pd.concat([intermediates, model_output_df])
     
 # Combined intermediates with integrated data
 solData = pd.concat([solData,intermediates],axis=1)

@@ -48,7 +48,7 @@ def uavDynamicsWrapper(a1,a2,a3,h_0,v_0,smartsData,config_file,mode):
         # State machine
         if(E_Batt>=E_batmax and state==0):
             state = 1
-        elif(state==1 and (h>=heightmax or (h>heightmin+250 and E_Batt<=E_batmax))):
+        elif(state==1 and (h>=heightmax or (h>heightmin+100 and E_Batt<=E_batmax))):
             state = 2
         elif(state==2 and  E_Batt<=E_batmax*0.99):
             state = 3
@@ -71,26 +71,6 @@ def uavDynamicsWrapper(a1,a2,a3,h_0,v_0,smartsData,config_file,mode):
         else:
             print('Error: Nonexistant State')
             sys.exit()
-#        print(gamma_mode)
-#        print('E_batres: '+str(E_batres))
-#        print('h: ' + str(h))
-#        print('t: ' + str(t))
-#        if (E_batres>=0 and h<=heightmax): #MAKIG IT FLY UP OR DOWNWARD WITH RESIDUAL ENERGY
-#            gamma_mode='up'
-#            print ('up')
-#        elif (E_batres<=0 and h>heightmin):#Descending
-#            gamma_mode='down'
-#            print ('down')
-#        elif h>heightmax:#TOP
-#            gamma_mode='level'
-#            print ('Level Top')
-#        elif (h<=heightmin+5 and h>=heightmin-5):#bottom
-#            gamma_mode='level'
-#            print ('Level Bottom')
-#        else:
-#            gamma_mode='level'
-#            print('level')
-#            print('Just in case.')
 
         if(gamma_mode=='up'):
             Tp_0 = np.interp(h,config['hlistup'],config['Tplistup'])
@@ -100,10 +80,13 @@ def uavDynamicsWrapper(a1,a2,a3,h_0,v_0,smartsData,config_file,mode):
             Tp_0 = np.interp(h,config['hlistdown'],config['Tplistdown'])
             alpha_0 = np.interp(h,config['hlistdown'],config['alphalistdown'])
             phi_0 = np.interp(h,config['hlistdown'],config['philistdown'])
-        else:
+        elif(gamma_mode=='level'):
             Tp_0 = np.interp(h,config['hlistlevel'],config['Tplistlevel'])
             alpha_0 = np.interp(h,config['hlistlevel'],config['alphalistlevel'])
             phi_0 = np.interp(h,config['hlistlevel'],config['philistlevel'])
+        else:
+            print('Error: Nonexistant State')
+            sys.exit()
 #        # Load MVs
 #        Tp_0, alpha_0, phi_0 = MV
         
@@ -119,7 +102,10 @@ def uavDynamicsWrapper(a1,a2,a3,h_0,v_0,smartsData,config_file,mode):
         v = v_0
         h = h_0
         gamma_mode = config['trajectory']['gamma']['mode']
-        gamma = config['trajectory']['gamma'][gamma_mode]
+        if gamma_mode == 'down':
+            gamma = np.interp(h,config['hlistlevel'],config['gammalistdown'])
+        else:
+            gamma = config['trajectory']['gamma'][gamma_mode]
         psi = config['trajectory']['psi']['initial_value']
         initial_SOC = config['aircraft']['battery']['initial_state_of_charge']
         E_d = config['aircraft']['battery']['energy_density']['value'] # Battery energy density (W*hr/kg) (FB)
@@ -136,9 +122,59 @@ def uavDynamicsWrapper(a1,a2,a3,h_0,v_0,smartsData,config_file,mode):
         MV = a3
         # Load SVs
         v,gamma,psi,h,x,y,E_Batt = SV
-        # Load MVs
-        Tp_0, alpha_0, phi_0 = MV
-        pass
+#        # Load MVs
+#        Tp_0, alpha_0, phi_0 = MV
+        # Calculate new MVs # Height state machine
+        E_d = config['aircraft']['battery']['energy_density']['value'] # 350.0 # Battery energy density (W*hr/kg) (FB)
+        m_battery = config['aircraft']['battery']['mass']['value'] # 212.0 # (kg) (FB)
+        E_batmax = m_battery*E_d*3.6/1000.0 # Max energy stored in battery (MJ)
+        heightmax=config['trajectory']['h']['max']
+        heightmin=config['trajectory']['h']['min']
+#        E_batres=(E_Batt-E_batmax) #Getting Residual Energy over battery maximum
+        
+        # State machine
+        if(E_Batt>=E_batmax and state==0):
+            state = 1
+        elif(state==1 and (h>=heightmax or (h>heightmin+100 and E_Batt<=E_batmax))):
+            state = 2
+        elif(state==2 and  E_Batt<=E_batmax*0.991):
+            state = 3
+        elif(state==3 and h<=heightmin+1):
+            state = 4
+        # Save state for next iteration
+        st.state = state
+            
+        # Set gamma based on current state
+        if(state==0):
+            gamma_mode='level'
+        elif(state==1):
+            gamma_mode='up'
+        elif(state==2):
+            gamma_mode='level'
+        elif(state==3):
+            gamma_mode='down'
+        elif(state==4):
+            gamma_mode='level'
+        else:
+            print('Error: Nonexistant State')
+            sys.exit()
+            
+        # Set MVs based on height and gamma
+        if(gamma_mode=='up'):
+            Tp_0 = np.interp(h,config['hlistup'],config['Tplistup'])
+            alpha_0 = np.interp(h,config['hlistup'],config['alphalistup'])
+            phi_0 = np.interp(h,config['hlistup'],config['philistup'])
+        elif(gamma_mode=='down'):
+            Tp_0 = np.interp(h,config['hlistdown'],config['Tplistdown'])
+            alpha_0 = np.interp(h,config['hlistdown'],config['alphalistdown'])
+            phi_0 = np.interp(h,config['hlistdown'],config['philistdown'])
+        elif(gamma_mode=='level'):
+            Tp_0 = np.interp(h,config['hlistlevel'],config['Tplistlevel'])
+            alpha_0 = np.interp(h,config['hlistlevel'],config['alphalistlevel'])
+            phi_0 = np.interp(h,config['hlistlevel'],config['philistlevel'])
+        else:
+            print('Error: Nonexistant State')
+            sys.exit()
         
     ## Run Model
     m = model(t,v,gamma,psi,h,x,y,E_Batt,Tp_0,alpha_0,phi_0,smartsData,config_file,mode)
@@ -201,6 +237,7 @@ def uavDynamicsWrapper(a1,a2,a3,h_0,v_0,smartsData,config_file,mode):
 #         m['theta'],
 #         m['te']
 #        ]
+        m['state'] = state
         output = m
         
     return output
@@ -258,13 +295,48 @@ def model(t,v,gamma,psi,h,x,y,E_batt,Tp_0,alpha_0,phi_0,smartsData,config_file,m
         dsa = 5.8328354781017406E+03
         dsb = -1.6309313517819710E+01
     elif(config['aircraft']['name'] == 'Aquila E216'):
-        dsa = 9.6878064972771682E-02
-        dsb = -1.1914394969415213E-02
-        dsc = 1.4658946775121501E-07
-        dsd = -7.4933620263012425E-09
-        dsf = -1.6444247419782368E-01
-        dsg = 3.9791780146017000E-05
-        dsh = -4.1825694373660372E-06
+#        dsa = 9.6878064972771682E-02
+#        dsb = -1.1914394969415213E-02
+#        dsc = 1.4658946775121501E-07
+#        dsd = -7.4933620263012425E-09
+#        dsf = -1.6444247419782368E-01
+#        dsg = 3.9791780146017000E-05
+#        dsh = -4.1825694373660372E-06
+        dsa = -5.7190133637197167E+07
+        dsb = 1.0906824839174636E+07
+        dsc = -3.0009432623030330E+02
+        dsd = -1.7444861027294422E+01
+        dsf = 1.1140033718391079E+08
+        dsg = -2.5839992226450522E+04
+        dsh = 1.8647534000558155E+03
+    elif(config['aircraft']['name'] == 'Aquila E216 New'):
+        #        dsa = 3.6931693916886783E-02
+#        dsb = -3.3910332597732348E-08
+#        dsc = -4.6884537749472986E-03
+#        dsd = 5.6626758945071221E-09
+#        dsf = 6.6464935071980705E-04
+#        dsg = -4.0038322876284999E-10
+        dsa = 6.4481559973709565E-02
+        dsb = -1.8784155229511873E-07
+        dsc = 1.7932659465086720E-13
+        dsd = -1.1138505718328709E-02
+        dsf = 3.7504655548703261E-08
+        dsg = -3.1059181794933706E-14
+        dsh = 1.0975313832298184E-03
+        dsi = -2.3679608054684811E-09
+        dsj = 1.5846194439048924E-15
+#        lsa = 3.8085901707842790E-01
+#        lsb = 8.7610993146127927E-02
+#        lsc = 7.1817303788382137E-07
+#        lsd = -1.6655963882298553E-03
+#        lsf = -4.6250503427103240E-13
+#        lsg = -1.3560528036942381E-08
+        lsa = 3.7742114873404853E-01
+        lsb = 1.2431611459242210E-01
+        lsc = 7.6461542484034933E-07
+        lsd = -5.6822813708386566E-03
+        lsf = -6.4455385473394244E-13
+        lsg = -2.6505858038599027E-08
     
     # Propeller Efficiency
     R_prop = config['aircraft']['propeller_radius']['value'] # 2.0 # Propeller Radius (m) - Kevin
@@ -298,6 +370,9 @@ def model(t,v,gamma,psi,h,x,y,E_batt,Tp_0,alpha_0,phi_0,smartsData,config_file,m
     # Alpha in degress for fits
     alpha_deg = np.degrees(alpha)
     
+    # Flat plate Reynolds number
+    Re = rho*v*chord/mu # Reynolds number
+    
     # CL from AoA, Lift slope line from xflr5
 #    cl = (1.59-0.656)/(10-0)*(alpha*180/pi-0)+0.656
     if(config['aircraft']['name']=='Aquila'):
@@ -305,13 +380,17 @@ def model(t,v,gamma,psi,h,x,y,E_batt,Tp_0,alpha_0,phi_0,smartsData,config_file,m
     elif(config['aircraft']['name']=='Helios'):
         cl = 0.099*alpha_deg + 0.041
     elif(config['aircraft']['name'] == 'Aquila E216'):
-        cl = 0.095*alpha_0*180/pi+0.727
+        cl = 0.095*alpha_deg+0.727
+    elif(config['aircraft']['name'] == 'Aquila E216 New'):
+#        cl = 0.093*alpha_deg+0.364
+#        cl = lsa + lsb*alpha_deg + lsc*Re + lsd*(alpha_deg)**2 + lsf*Re**2 + lsg*alpha_deg*Re
+         cl = lsa+lsb*alpha_deg+lsc*Re+lsd*alpha_deg**2+lsf*Re**2+lsg*alpha_deg*Re
+    
     
     #### Drag Model
     ### Top Surface
     ## Top Reynolds Numbers
-    # Flat plate Reynolds number
-    Re = rho*v*chord/mu # Reynolds number
+    
 #    # Top surface laminar region
 #    Re_Laminar_top = Re*xcrit_top
 #    # Top surface transition region
@@ -373,14 +452,19 @@ def model(t,v,gamma,psi,h,x,y,E_batt,Tp_0,alpha_0,phi_0,smartsData,config_file,m
     elif(config['aircraft']['name'] == 'Helios'):
         C_D_p = dsa * Re**(-1) + dsb * alpha_deg**(2) * Re**(-1)
     elif(config['aircraft']['name'] == 'Aquila E216'):
-        C_D_p = (dsa + dsb*alpha_deg + dsc*Re + dsd*alpha_deg*Re) / (1.0 + dsf*alpha_deg + dsg*Re + dsh*alpha_deg*alpha_deg)
-    
+#        C_D_p = (dsa + dsb*alpha_deg + dsc*Re + dsd*alpha_deg*Re) / (1.0 + dsf*alpha_deg + dsg*Re + dsh*alpha_deg*Re)
+        C_D_p = 0
+        C_D = (dsa + dsb*alpha_deg + dsc*Re + dsd*alpha_deg*Re) / (1.0 + dsf*alpha_deg + dsg*Re + dsh*alpha_deg*Re)
+    elif(config['aircraft']['name'] == 'Aquila E216 New'):
+#        C_D = dsa+dsb*Re+dsc*alpha_deg+dsd*alpha_deg*Re+dsf*alpha_deg**2+dsg*alpha_deg**2*Re
+        C_D = dsa + dsb*Re + dsc*Re**2+dsd*alpha_deg+dsf*alpha_deg*Re+dsg*alpha_deg*Re**2+dsh*alpha_deg**2+dsi*alpha_deg**2*Re+dsj*alpha_deg**2*Re**2
+        C_D_p = 0 # Just set this to zero to avoid errors in the data recording.
     
     # Oswald efficiency factor
-    k_e = 0.4*C_D_p
-    e_o = 1/((pi*AR*k_e) + (1/es))
+#    k_e = 0.4*C_D_p
+#    e_o = 1/((pi*AR*k_e) + (1/es))
     # Drag coefficient
-    C_D = C_D_p + cl**2/(pi*AR*e_o)
+#    C_D = C_D_p + cl**2/(pi*AR*e_o)
     
     #### Flight Dynamics
     q = 1/2.0*rho*v**2 # Dynamic pressure (Pa)
@@ -393,11 +477,19 @@ def model(t,v,gamma,psi,h,x,y,E_batt,Tp_0,alpha_0,phi_0,smartsData,config_file,m
     
     ### Propeller Max Theoretical Efficiency
     Adisk = pi * R_prop**2 # Area of disk
-    e_prop = 2.0 / (1.0 + ( D / (Adisk * v**2.0 * rho/2.0) + 1.0 )**0.5)
-    nu_prop = e_prop * e_motor
+    if v>0:
+        e_prop = 2.0 / (1.0 + ( Tp / (Adisk * v**2.0 * rho/2.0) + 1.0 )**0.5)
+        nu_prop = e_prop * e_motor
+    else:
+        e_prop = 0
+        nu_prop = 0
+#    nu_prop = e_prop * e_motor
     
     #### Power
-    P_N = P_payload + v*Tp/nu_prop # Power Needed by Aircraft
+    if nu_prop > 0:
+        P_N = P_payload + v*Tp/nu_prop # Power Needed by Aircraft
+    else:
+        P_N = 999999999 # Big number
     
     # Solar
     solar_data = config['solar']['solar_data']
@@ -446,13 +538,20 @@ def model(t,v,gamma,psi,h,x,y,E_batt,Tp_0,alpha_0,phi_0,smartsData,config_file,m
     
     # Flight Dynamics
     dv_dt = ((Tp-D)/(m*g)-sin(gamma))*g
-    dgamma_dt = g/v*(nv-cos(gamma))
-    dpsi_dt = g/v*(nh/cos(gamma))
+    if v == 0:
+        dpsi_dt = 99999999 # Just set this to a big number
+        dgamma_dt = 99999999
+    else:
+        dpsi_dt = g/v*(nh/cos(gamma))
+        dgamma_dt = g/v*(nv-cos(gamma))
     dh_dt = v*sin(gamma)
     dx_dt = v*cos(psi)*cos(gamma)
     dy_dt = v*sin(psi)*cos(gamma)
     dist = (sqrt(x**2+y**2))
-    radius = v**2/(g*tan(phi))# Flight path radius
+    if phi == 0:
+        radius = 99999999 # Just set this to a big number
+    else:
+        radius = v**2/(g*tan(phi))# Flight path radius
     
     radius_max = config['trajectory']['x']['max'] # 3000 (m)
     

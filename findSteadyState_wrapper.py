@@ -10,52 +10,65 @@ Updates:
 
 from __future__ import division
 import numpy as np
-from numpy import pi, sqrt, cos, sin, exp, tan, log10
-from scipy.optimize import root
+#from numpy import pi, sqrt, cos, sin, exp, tan, log10
+#from scipy.optimize import root
 from dynamicsWrapper import uavDynamicsWrapper
 from scipy.optimize import minimize
-from pyswarm import pso
+#from pyswarm import pso
 import sys
 
 
-def power_objective(v,x0,h_0,smartsData,config_file):
-    # Find Steady State at this v
-    if(config_file['aircraft']['name']=='Aquila'):
-        x0 = np.array(x0) * v/32.0 # Adjust initial guesses
-#    eq = root(uavDynamicsWrapper,x0,method='lm',args=([],[],h_0,v,smartsData,config_file,2))
-    eq = root(uavDynamicsWrapper,x0,args=([],[],h_0,v,smartsData,config_file,2))
-    if(eq.success==False):
-        print('Could not find root in power objective')
-        sys.exit()
-    # Find power at this v
-    P_N = uavDynamicsWrapper(eq.x,[],[],h_0,v,smartsData,config_file,3)
-    return [P_N]
+def new_objective(xv,h_0,smartsData,config_file):
+    x0 = xv[:3]
+    v = xv[3]
+#    d = uavDynamicsWrapper(x0,[],[],h_0,v,smartsData,config_file,2)
+    P_N = uavDynamicsWrapper(x0,[],[],h_0,v,smartsData,config_file,3)
+    return P_N
 
-def pso_root(x0,v,h_0,smartsData,config_file):
+def new_constraints(xv,h_0,smartsData,config_file):
+    x0 = xv[:3]
+    v = xv[3]
     d = uavDynamicsWrapper(x0,[],[],h_0,v,smartsData,config_file,2)
-    return np.sum(np.abs(d))
+    return d
 
-# Constraints for power minimization
-def power_constraints(v,x0,h_0,smartsData,config_file):
-    # Find Steady State at this v
-    if(config_file['aircraft']['name']=='Aquila'):
-        x0 = np.array(x0) * v/32.0 # Adjust initial guesses
-#    eq = root(uavDynamicsWrapper,x0,method='lm',args=([],[],h_0,v,smartsData,config_file,2))
-    eq = root(uavDynamicsWrapper,x0,args=([],[],h_0,v,smartsData,config_file,2))
-    if(eq.success==False):
-        print('Could not find root in power constraints')
-        sys.exit()
-    Tp = eq.x[0]
-    alpha = eq.x[1]
-    phi = eq.x[2]
-    # Find lift coefficient at this v
-    constraint_array = [config_file['trajectory']['tp']['max'] - Tp,
-                        Tp - config_file['trajectory']['tp']['min'],
-                        config_file['trajectory']['phi']['max'] - phi,
-                        phi - config_file['trajectory']['phi']['min'],
-                        config_file['trajectory']['alpha']['max'] - alpha,
-                        alpha - config_file['trajectory']['alpha']['min']]
-    return constraint_array
+#def power_objective(v,x0,h_0,smartsData,config_file):
+#    # Find Steady State at this v
+#    if(config_file['aircraft']['name']=='Aquila'):
+#        x0 = np.array(x0) * v/32.0 # Adjust initial guesses
+##    eq = root(uavDynamicsWrapper,x0,method='lm',args=([],[],h_0,v,smartsData,config_file,2))
+#    eq = root(uavDynamicsWrapper,x0,args=([],[],h_0,v,smartsData,config_file,2))
+#    if(eq.success==False):
+#        print('Could not find root in power objective')
+#        sys.exit()
+#    # Find power at this v
+#    P_N = uavDynamicsWrapper(eq.x,[],[],h_0,v,smartsData,config_file,3)
+#    return [P_N]
+#
+#def pso_root(x0,v,h_0,smartsData,config_file):
+#    d = uavDynamicsWrapper(x0,[],[],h_0,v,smartsData,config_file,2)
+#    return np.sum(np.abs(d))
+#
+## Constraints for power minimization
+#def power_constraints(v,x0,h_0,smartsData,config_file):
+#    # Find Steady State at this v
+#    if(config_file['aircraft']['name']=='Aquila'):
+#        x0 = np.array(x0) * v/32.0 # Adjust initial guesses
+##    eq = root(uavDynamicsWrapper,x0,method='lm',args=([],[],h_0,v,smartsData,config_file,2))
+#    eq = root(uavDynamicsWrapper,x0,args=([],[],h_0,v,smartsData,config_file,2))
+#    if(eq.success==False):
+#        print('Could not find root in power constraints')
+#        sys.exit()
+#    Tp = eq.x[0]
+#    alpha = eq.x[1]
+#    phi = eq.x[2]
+#    # Find lift coefficient at this v
+#    constraint_array = [config_file['trajectory']['tp']['max'] - Tp,
+#                        Tp - config_file['trajectory']['tp']['min'],
+#                        config_file['trajectory']['phi']['max'] - phi,
+#                        phi - config_file['trajectory']['phi']['min'],
+#                        config_file['trajectory']['alpha']['max'] - alpha,
+#                        alpha - config_file['trajectory']['alpha']['min']]
+#    return constraint_array
 
 def findSteadyState(x0,h_0,smartsData,config_file):
     '''
@@ -63,30 +76,45 @@ def findSteadyState(x0,h_0,smartsData,config_file):
     and bank angle for a minimum power level turn with the desired radius.
     '''
     config = config_file
-
-    # Initial guess for velocity
+#
+#    # Initial guess for velocity
     v_0 = config['trajectory']['v']['ss_initial_guess'] # 35
+#    
+#    # New guess values from PSO
+#    lb = [config_file['trajectory']['tp']['min'],
+#          config_file['trajectory']['alpha']['min'],
+#          config_file['trajectory']['phi']['min']]
+#    
+#    ub = [config_file['trajectory']['tp']['max'],
+#          config_file['trajectory']['alpha']['max'],
+#          config_file['trajectory']['phi']['max']]
+#    
+#    x0, fopt = pso(pso_root, lb=lb, ub=ub, args=(v_0,h_0,smartsData,config_file),maxiter=500,swarmsize=300)
+#    print('New Guess Values: ' +str(x0))
+#    
+#    cons = ({'type': 'ineq', 'fun':power_constraints,'args':(x0,h_0,smartsData,config_file)})
+    cons = ({'type': 'eq', 'fun':new_constraints,'args':(h_0,smartsData,config_file)})
     
-    # New guess values from PSO
-    lb = [config_file['trajectory']['tp']['min'],
-          config_file['trajectory']['alpha']['min'],
-          config_file['trajectory']['phi']['min']]
-    
-    ub = [config_file['trajectory']['tp']['max'],
-          config_file['trajectory']['alpha']['max'],
-          config_file['trajectory']['phi']['max']]
-    
-    x0, fopt = pso(pso_root, lb=lb, ub=ub, args=(v_0,h_0,smartsData,config_file),maxiter=500,swarmsize=300)
-    print('New Guess Values: ' +str(x0))
-    
-    cons = ({'type': 'ineq', 'fun':power_constraints,'args':(x0,h_0,smartsData,config_file)})
-    
-    sol = minimize(power_objective,
-                   [v_0],
-                   args=(x0,h_0,smartsData,config_file),
+    bounds = [(config_file['trajectory']['tp']['min'],config_file['trajectory']['tp']['max']),
+               (config_file['trajectory']['phi']['min'],config_file['trajectory']['phi']['max']),
+               (config_file['trajectory']['alpha']['min'],config_file['trajectory']['alpha']['max']),
+               (0,100)]
+    # Try without root
+    x0v0 = np.r_[x0,v_0]
+    sol = minimize(new_objective,
+                   [x0v0],
+                   args=(h_0,smartsData,config_file),
+                   bounds = bounds,
                    constraints=cons,
                    method='SLSQP',
-                   options={'disp':True,'eps':1e-8,'ftol':1e-10})
+                   options={'disp':True,'eps':1e-8,'ftol':1e-8})
+#    
+#    sol = minimize(power_objective,
+#                   [v_0],
+#                   args=(x0,h_0,smartsData,config_file),
+#                   constraints=cons,
+#                   method='SLSQP',
+#                   options={'disp':True,'eps':1e-8,'ftol':1e-10})
 #    sol = minimize(power_objective,
 #                   [v_0],
 #                   args=(x0,h_0,smartsData,config_file),
@@ -95,13 +123,19 @@ def findSteadyState(x0,h_0,smartsData,config_file):
     if(sol.success==False):
         print('Could not find minimum velocity')
         sys.exit()
-    vmin = sol.x
-    eq = root(uavDynamicsWrapper,x0,method='lm',args=([],[],h_0,vmin,smartsData,config_file,2))
-    Tpmin = eq.x[0]
-    alphamin = eq.x[1]
-    phimin = eq.x[2]
-    clmin = uavDynamicsWrapper(eq.x,[],[],h_0,vmin,smartsData,config_file,4)
-    pmin = uavDynamicsWrapper(eq.x,[],[],h_0,vmin,smartsData,config_file,3)
+    Tpmin = sol.x[0]
+    alphamin = sol.x[1]
+    phimin = sol.x[2]
+    vmin = sol.x[3]
+    clmin = uavDynamicsWrapper(sol.x[:3],[],[],h_0,vmin,smartsData,config_file,4)
+    pmin = sol.fun
+#    vmin = sol.x
+#    eq = root(uavDynamicsWrapper,x0,method='lm',args=([],[],h_0,vmin,smartsData,config_file,2))
+#    Tpmin = eq.x[0]
+#    alphamin = eq.x[1]
+#    phimin = eq.x[2]
+#    clmin = uavDynamicsWrapper(eq.x,[],[],h_0,vmin,smartsData,config_file,4)
+#    pmin = uavDynamicsWrapper(eq.x,[],[],h_0,vmin,smartsData,config_file,3)
     
 #    from findSteadyState_config import uavSSPower
 #    from findSteadyState_config import uavSSdynamics

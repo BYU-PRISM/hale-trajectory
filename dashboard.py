@@ -26,9 +26,10 @@ def define_app():
     encoded_image = base64.b64encode(open('logo.png', 'rb').read())
     
     
-    folders = glob.glob('./Data/*')
-    folder = 'hale_2017_11_16_10_15_17 - Single Orbit'
-    file = glob.glob('./Data/'+folder+'/Intermediates/*.xlsx')[-1]
+    folders = glob.glob('./Results/*')
+#    folder = 'hale_2017_11_16_10_15_17 - Single Orbit'
+    folder = folders[-1]
+    file = glob.glob(folder+'/Intermediates/*.xlsx')[-1]
     df = pd.read_excel(file)
     df = fix_units(df)
     units = load_units()
@@ -550,7 +551,7 @@ def define_app():
     dash.dependencies.Output('select_data', 'options'),
     [dash.dependencies.Input('refresh_button', 'n_clicks')])
     def update_output(n_clicks):
-        folders = glob.glob('./Data/*')
+        folders = glob.glob('./Results/*')
         return [{'label': os.path.basename(i), 'value': i} for i in folders]
     
     return app
@@ -573,17 +574,8 @@ def fix_units(df):
     df['psi_mod'] = np.mod(df['psi'],2*np.pi)
     df['psi_deg_mod'] = np.mod(df['psi_deg'],360)
     df['pinout'] = df['p_solar'] - df['p_n']
-    try:
-        df['L/D'] = df['cl']/df['cd']
-#        df['L'] = df['L/D']*df['D']
-    except:
-        df['L/D'] = df['cl']/df['c_d']
-#        df['L'] = df['L/D']*df['D']
+#    df['L/D'] = df['cl']/df['cd']
     df['SOC'] = df['e_batt']/(df['e_batt'].iloc[0]/0.20)
-    try:
-        df['e_balance'] = df['ke'] + df['pe'] - df['worktp'] + df['workd']
-    except:
-        pass
     
     # Wind
     try:

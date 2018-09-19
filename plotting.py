@@ -135,9 +135,9 @@ def plot3DPath_NorthSouth(data,interpFactor=1,tight=0):
 #    ax.set_zlim([18,28])
     
     # Plot boundary radius
-    circle = plt.Circle((0,0),3,color='orange',fill=False,linestyle='--',linewidth=0.5)
-    boundary = ax.add_patch(circle)
-    art3d.pathpatch_2d_to_3d(boundary, z=zs.mean(), zdir="z")
+#    circle = plt.Circle((0,0),3,color='orange',fill=False,linestyle='--',linewidth=0.5)
+#    boundary = ax.add_patch(circle)
+#    art3d.pathpatch_2d_to_3d(boundary, z=zs.mean(), zdir="z")
     
     # Plot start and finish
     start_point = ax.scatter(xs[0,0],ys[0,0],zs[0,0],color=colors[0],marker='.')
@@ -214,21 +214,114 @@ def plot2DPath_Labeled(data,season,config):
         plt.xlim([-3,3])
         plt.ylim([-3,3])
         
-        ax.quiver(2.8,-2.8,sun_x,sun_y,pivot='tail',color='k')
-        ax.text(2.3,-2.5,'To Sun')
+        ax.quiver(2.6,-2.6,sun_x,sun_y,pivot='tail',color='k')
+        ax.text(2.1,-2.4,'To Sun',fontsize=9)
         
         if(config['wind']['use_wind']==True):
             ax.quiver(-3,-3,w_x,w_y,pivot='tail',color='k')
             ax.text(-3.25,-2.7,'Wind')
             ax.text(-3.25,-3.5,str(v_w)+' m/s')
+            
+        direction = checkDirection(data)
+        if(direction=='clockwise'):
+            ax.plot([-2.6],[-2.6],marker=r'$\circlearrowright$',ms=20,c='k')
+        else:
+            ax.plot([-2.6],[-2.6],marker=r'$\circlearrowleft$',ms=20,c='k')
+        ax.text(-2.9,-2.1,'Flight Direction',fontsize=9)
         
+#        numx = len(x)/4
+#        for j in range(4):
+#            ax.annotate(str(j+1),(y[int(j*numx)],x[int(j*numx)]),(y[int(j*numx)],x[int(j*numx)]))
+        
+        plt.tight_layout()
+        width  = 4.25
+        height = width / 1.618
+        fig.set_size_inches(width, height)
 #        ax.set_title('Flight Path Hour ' +str(n/divs))
-#        filename = './Data/'+folder+'/Trajectory Plots/' + '2d_path'+str(n/divs)+'_'+label_list[i].split()[0]+'.png'
+#        filename = './Results/'+folder+'/Trajectory Plots/' + '2d_path'+str(n/divs)+'_'+label_list[i].split()[0]+'.png'
         filename = '2d_path'+'_'+label_list[i].split()[0]+'_'+season+'.pdf'
-        fig.savefig(filename, facecolor='none', edgecolor='none')
+        fig.savefig(filename, facecolor='none', edgecolor='none',bbox_inches='tight')
         plt.close(fig)
     
     return
+
+def plot2DPath_NoLabel(data,season,config):
+    
+    # Switch x and y to change to north south
+    x = data['y'].as_matrix() / 1000.0 # Convert to km
+    y = data['x'].as_matrix() / 1000.0 # Convert to km
+    z = data['h'].as_matrix() * 3.2808 # Convert to ft
+    
+    if(config['wind']['use_wind']==False):
+        v = data['v'].as_matrix()
+    else:
+        try:
+            v_a = data['v_a'].as_matrix()
+            v_g = data['v_g'].as_matrix()
+        except:
+            v_a = np.zeros(len(x))
+            v_g = np.zeros(len(x))
+    
+    # Calculate sun direction vector
+    az = np.radians(data.azimuth.mean())
+    zen = np.pi/2.0 - np.radians(data.zenith.mean())
+    sun_x = np.sin(az)*np.cos(zen)
+    sun_y = np.cos(az)*np.cos(zen)
+    
+        
+    if(config['wind']['use_wind']==True):
+        # Calculate wind direction vector
+        v_w = np.sqrt(config['wind']['w_e']**2 + config['wind']['w_n']**2)
+        w_x = config['wind']['w_e']/v_w
+        w_y = config['wind']['w_n']/v_w
+    
+    fig = plt.figure()
+    ax = plt.gca()
+    
+    plt.scatter(x, y,color='k')
+
+    ax.set_xlabel('E (km)')
+    ax.set_ylabel('N (km)')
+#        ax.set_title('Flight Path')
+
+    # Plot boundary radius
+    circle = plt.Circle((0,0),3,color='orange',fill=False,linestyle='-')
+    ax.add_patch(circle)
+    
+    plt.xlim([-3,3])
+    plt.ylim([-3,3])
+    
+    ax.quiver(2.6,-2.6,sun_x,sun_y,pivot='tail',color='k')
+    ax.text(2.1,-2.4,'To Sun',fontsize=9)
+    
+    if(config['wind']['use_wind']==True):
+        ax.quiver(-3,-3,w_x,w_y,pivot='tail',color='k')
+        ax.text(-3.25,-2.7,'Wind')
+        ax.text(-3.25,-3.5,str(v_w)+' m/s')
+        
+    direction = checkDirection(data)
+    if(direction=='clockwise'):
+        ax.plot([-2.6],[-2.6],marker=r'$\circlearrowright$',ms=20,c='k')
+    else:
+        ax.plot([-2.6],[-2.6],marker=r'$\circlearrowleft$',ms=20,c='k')
+    ax.text(-2.9,-2.1,'Flight Direction',fontsize=9)
+    
+#        numx = len(x)/4
+#        for j in range(4):
+#            ax.annotate(str(j+1),(y[int(j*numx)],x[int(j*numx)]),(y[int(j*numx)],x[int(j*numx)]))
+    
+    plt.tight_layout()
+    width  = 4.25
+    height = width
+    fig.set_size_inches(width, height)
+#        ax.set_title('Flight Path Hour ' +str(n/divs))
+#        filename = './Results/'+folder+'/Trajectory Plots/' + '2d_path'+str(n/divs)+'_'+label_list[i].split()[0]+'.png'
+    filename = '2d_path'+'_'+season+'.pdf'
+    fig.savefig(filename, facecolor='none', edgecolor='none',bbox_inches='tight')
+    plt.close(fig)
+    
+    return
+
 
 def plot2DPath_Radius(data,radius):
     
@@ -252,8 +345,12 @@ def plot2DPath_Radius(data,radius):
     plt.xlim([-radius/1000,radius/1000])
     plt.ylim([-radius/1000,radius/1000])
     
+    plt.tight_layout()
+    width  = 4.25
+    height = width / 1.618
+    fig.set_size_inches(width, height)
     filename = '2d_radius'+'_'+str(radius)+'.pdf'
-    fig.savefig(filename, facecolor='none', edgecolor='none')
+    fig.savefig(filename, facecolor='none', edgecolor='none',bbox_inches='tight')
     plt.close(fig)
     
     return
@@ -261,7 +358,7 @@ def plot2DPath_Radius(data,radius):
 def plotHourly(data, numHours, plot2D, divs, folder, config, interpFactor=1, tight=0):
     
     # Make plot directory
-    directory = './Data/'+folder+'/Trajectory Plots/'
+    directory = './Results/'+folder+'/Trajectory Plots/'
     if not os.path.exists(directory):
         os.makedirs(directory)
     
@@ -287,9 +384,9 @@ def plotHourly(data, numHours, plot2D, divs, folder, config, interpFactor=1, tig
         z_origin = data_plot.h.mean()* 3.2808/1000.0
 #        if(tight==0):
 #            ax.quiver(0,0,z_origin,sun_x,sun_y,sun_z,pivot='tail',length=3,color='k')
-        filename = './Data/'+folder+'/Trajectory Plots/' + '3d_path'+str(n/divs)+'.png'
+        filename = './Results/'+folder+'/Trajectory Plots/' + '3d_path'+str(n/divs)+'.png'
         fig.savefig(filename, facecolor='none', edgecolor='none')
-#        filename = './Data/hale_2017_10_16_18_24_01 - Double alpha dmax/Plots/' + 'anim'+'_'+str(n).zfill(4)+'.png'
+#        filename = './Results/hale_2017_10_16_18_24_01 - Double alpha dmax/Plots/' + 'anim'+'_'+str(n).zfill(4)+'.png'
 #        fig.savefig(filename, facecolor='none', edgecolor='none')
         plt.close(fig)
             
@@ -383,18 +480,18 @@ def plotTotalEnergy_multiple(folderList):
         bat_mass = name.split()[-2]
         color = colors[bat_mass]
         if(name.split()[0]=='SM'):
-            files = glob.glob('./Data/'+folder+'/sm_results*.xlsx')
+            files = glob.glob('./Results/'+folder+'/sm_results*.xlsx')
             df_sm = pd.read_excel(files[-1])
             df_sm = fix_units(df_sm)
             # Plots
             plt.plot(df_sm.time_hr,df_sm.te_kwh,':',label=name,color=color)
         else:
     #        print(name)
-            files = glob.glob('./Data/'+folder+'/Intermediates/*.xlsx')
+            files = glob.glob('./Results/'+folder+'/Intermediates/*.xlsx')
     #        print(files)
             df_opt = pd.read_excel(files[-1])
             # Load SS
-            files = glob.glob('./Data/'+folder+'/ss_results*.xlsx')
+            files = glob.glob('./Results/'+folder+'/ss_results*.xlsx')
             df_ss = pd.read_excel(files[-1])
             # More units
             df_opt = fix_units(df_opt)
@@ -424,7 +521,7 @@ def plotSOC_multiple(folderList):
         bat_mass = name.split()[-2]
         color = colors[bat_mass]
         if(name.split()[0]=='SM'):
-            files = glob.glob('./Data/'+folder+'/sm_results*.xlsx')
+            files = glob.glob('./Results/'+folder+'/sm_results*.xlsx')
             df_sm = pd.read_excel(files[-1])
             df_sm = fix_units(df_sm)
             e_batt_max = df_sm['e_batt_max'].values[0]*0.277778
@@ -435,22 +532,21 @@ def plotSOC_multiple(folderList):
             df_bar = df_bar.append({'Battery Mass':int(bat_mass),'SOC':df_sm['soc'].values[-1],'Trajectory':'SM'},ignore_index=True)
         else:
     #        print(name)
-            files = glob.glob('./Data/'+folder+'/Intermediates/*.xlsx')
+            files = glob.glob('./Results/'+folder+'/Intermediates/*.xlsx')
     #        print(files)
             df_opt = pd.read_excel(files[-1])
             # Load SS
-            files = glob.glob('./Data/'+folder+'/ss_results*.xlsx')
+            files = glob.glob('./Results/'+folder+'/ss_results*.xlsx')
             df_ss = pd.read_excel(files[-1])
             # More units
             df_opt = fix_units(df_opt)
             df_ss = fix_units(df_ss)
-            e_batt_max = df_ss['e_batt'].values[0]/0.2*0.277778
-#            e_batt_max = df_ss['e_batt_max'].values[0]*0.277778
+            e_batt_max = df_ss['e_batt_max'].values[0]*0.277778
             df_ss['soc'] = df_ss['e_batt_kwh']/e_batt_max
             df_opt['soc'] = df_opt['e_batt_kwh']/e_batt_max
             # Plots
-            plt.plot(df_opt.time_hr,df_opt.soc,label=name+' Opt')#,color=color)
-            plt.plot(df_ss.time_hr,df_ss.soc,'--',label=name+' SS')#,color=color)
+            plt.plot(df_opt.time_hr,df_opt.soc,label=name+' Opt',color=color)
+            plt.plot(df_ss.time_hr,df_ss.soc,'--',label=name+' SS',color=color)
             print(name)
             print('Opt Final: ' + str(df_opt['soc'].values[-1]))
             print('SS Final: ' + str(df_ss['te_kwh'].values[-1]))
@@ -483,16 +579,16 @@ def plotAltitude_multiple(folderList):
         bat_mass = name.split()[-2]
         color = colors[bat_mass]
         if(name.split()[0]=='SM'):
-            files = glob.glob('./Data/'+folder+'/sm_results*.xlsx')
+            files = glob.glob('./Results/'+folder+'/sm_results*.xlsx')
             df_sm = pd.read_excel(files[-1])
             df_sm = fix_units(df_sm)
             # Plots
             plt.plot(df_sm.time_hr,df_sm.h,':',label=name,color=color)
         else:
-            files = glob.glob('./Data/'+folder+'/Intermediates/*.xlsx')
+            files = glob.glob('./Results/'+folder+'/Intermediates/*.xlsx')
             df_opt = pd.read_excel(files[-1])
             # Load SS
-            files = glob.glob('./Data/'+folder+'/ss_results*.xlsx')
+            files = glob.glob('./Results/'+folder+'/ss_results*.xlsx')
             df_ss = pd.read_excel(files[-1])
             # More units
             df_opt = fix_units(df_opt)
@@ -533,6 +629,16 @@ def fix_units(df):
         pass
        
     return df
+
+def checkDirection(df):
+    xdiff = df['x'] - df['x'].shift(1)
+    ydiff = df['y'] - df['y'].shift(1)
+    dot = xdiff[1:].dot(ydiff[1:])
+    if(dot<0):
+        direction = 'clockwise'
+    else:
+        direction = 'counter'
+    return direction
         
     
 if __name__ == '__main__':
@@ -541,12 +647,12 @@ if __name__ == '__main__':
 #    folder = 'hale_2017_10_25_17_25_32 - 5000 Iterations'
 #    
 #    # Load config
-#    config_file = './Data/'+folder+'/config_file'+folder[4:].split()[0]+'.yml'
+#    config_file = './Results/'+folder+'/config_file'+folder[4:].split()[0]+'.yml'
 #    with open(config_file, 'r') as ifile:
 #        config = yaml.load(ifile)
 #        
 #    # Load data
-#    file_list = glob.glob('./Data/'+folder+'/Intermediates/*.xlsx')
+#    file_list = glob.glob('./Results/'+folder+'/Intermediates/*.xlsx')
 #    data_file = file_list[-1]
 #    data = pd.read_excel(data_file)
 #    
@@ -569,13 +675,10 @@ if __name__ == '__main__':
 #                  'hale_2018_01_26_12_32_22 - Winter Battery 90 kg',
 #                  'hale_2018_02_02_12_01_31 - SM 90 kg'
 #                  ]
-#    folderList = ['hale_2018_03_19_13_56_31 - W 15  vg lb 100 kg',
-#                  'hale_2018_03_19_14_59_37 - W 15 140 kg',
-#                  'hale_2018_03_20_13_45_29 - W 15 120 kg dist CV h CV 120 kg']
-    folderList = ['hale_2018_03_20_15_29_31 - N 15 140 kg',
-                  'hale_2018_03_20_15_28_36 - S 15 140 kg',
-                  'hale_2018_03_20_13_46_53 - E 15 dist CV h CV 140 kg',
-                  'hale_2018_03_20_14_48_42 - W 15 Air Relative 140 kg']
+    folderList = ['hale_2018_04_23_07_54_18 - E216 CL 1.1 Winter',
+                  'hale_2018_04_23_08_01_10 - E216 CL 1.1 Spring',
+                  'hale_2018_04_23_08_01_21 - E216 CL 1.1 Summer',
+                  'hale_2018_04_23_08_01_28 - E216 CL 1.1 Fall']
     plotTotalEnergy_multiple(folderList)
     plotAltitude_multiple(folderList)
     plotSOC_multiple(folderList)

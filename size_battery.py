@@ -164,7 +164,6 @@ def size_battery(config):
                    [m_battery_guess],
                    args=(x0,h_0,config,smartsData,m_guess,m_battery_guess),
                    method='Nelder-Mead',
-                   tol=1e-1,
                    options={'disp':True})
     if(sol.success==True):
         print('Succesful optimization')
@@ -207,11 +206,10 @@ def size_battery_final(config):
     m_guess = config['aircraft']['mass_total']['value']
     
     print('Optimizing battery size')
-    sol = minimize(battery_gap,
+    sol = minimize(battery_final,
                    [m_battery_guess],
                    args=(x0,h_0,config,smartsData,m_guess,m_battery_guess),
                    method='Nelder-Mead',
-                   tol=1e-1,
                    options={'disp':True})
     if(sol.success==True):
         print('Succesful optimization')

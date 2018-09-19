@@ -64,10 +64,10 @@ def uavDynamicsWrapper_wind(a1,a2,a3,h_0,v_0,w,smartsData,config_file,mode):
     if(mode==5):
         # Output all other variables
         SV = a1
-#        t = a2
+        t = a2
         MV = a3
         # Load SVs
-        v_a,gamma,chi,h,x,y,E_Batt,t = SV
+        v_a,gamma,chi,h,x,y,E_Batt = SV
         # Load MVs
         Tp_0, alpha_0, phi_0 = MV
         
@@ -163,7 +163,7 @@ def uavDynamicsWrapper_wind(a1,a2,a3,h_0,v_0,w,smartsData,config_file,mode):
 #         m['dv_a_dt'],
 #         m['dgamma_dt']
 #         ]
-#        output = np.ravel(output)
+        output = np.ravel(output)
         
     return output
 
@@ -218,6 +218,19 @@ def model(t,v_a,gamma,chi,h,x,y,E_batt,Tp_0,alpha_0,phi_0,w,smartsData,config_fi
         dsf = -1.6444247419782368E-01
         dsg = 3.9791780146017000E-05
         dsh = -4.1825694373660372E-06
+    elif(config['aircraft']['name'] == 'Aquila E216 New'):
+        dsa = 3.6931693916886783E-02
+        dsb = -3.3910332597732348E-08
+        dsc = -4.6884537749472986E-03
+        dsd = 5.6626758945071221E-09
+        dsf = 6.6464935071980705E-04
+        dsg = -4.0038322876284999E-10
+        lsa = 3.8085901707842790E-01
+        lsb = 8.7610993146127927E-02
+        lsc = 7.1817303788382137E-07
+        lsd = -1.6655963882298553E-03
+        lsf = -4.6250503427103240E-13
+        lsg = -1.3560528036942381E-08
     
     # Wind
     w_n = w[0] # Extract wind components
@@ -293,6 +306,8 @@ def model(t,v_a,gamma,chi,h,x,y,E_batt,Tp_0,alpha_0,phi_0,w,smartsData,config_fi
         alpha = np.radians(m*g/(cos(phi)*q*S*0.0945)-0.6555/0.0945)
     elif(config['aircraft']['name'] == 'Aquila E216'):
         alpha = np.radians(m*g/(cos(phi)*q*S*0.095)-0.727/0.095)
+    elif(config['aircraft']['name'] == 'Aquila E216 New'):
+        alpha = np.radians(m*g/(cos(phi)*q*S*0.093)-0.364/0.093)
     #phi = phi_0 #0.038 #2.059E-03 # 0.0001 # Bank Angle (rad) (function input)
     
     #### Atmospheric Effects
@@ -304,6 +319,9 @@ def model(t,v_a,gamma,chi,h,x,y,E_batt,Tp_0,alpha_0,phi_0,w,smartsData,config_fi
     # Alpha in degress for fits
     alpha_deg = np.degrees(alpha)
     
+    # Flat plate Reynolds number
+    Re = rho*v_a*chord/mu # Reynolds number
+    
     # CL from AoA, Lift slope line from xflr5
 #    cl = (1.59-0.656)/(10-0)*(alpha*180/pi-0)+0.656
     if(config['aircraft']['name']=='Aquila'):
@@ -311,13 +329,15 @@ def model(t,v_a,gamma,chi,h,x,y,E_batt,Tp_0,alpha_0,phi_0,w,smartsData,config_fi
     elif(config['aircraft']['name']=='Helios'):
         cl = 0.099*alpha_deg + 0.041
     elif(config['aircraft']['name'] == 'Aquila E216'):
-        cl = 0.095*alpha_0*180/pi+0.727
+        cl = 0.095*alpha_deg+0.727
+    elif(config['aircraft']['name'] == 'Aquila E216 New'):
+#        cl = 0.093*alpha_deg+0.364
+        cl = lsa + lsb*alpha_deg + lsc*Re + lsd*(alpha_deg)**2 + lsf*Re**2 + lsg*alpha_deg*Re
     
     #### Drag Model
     ### Top Surface
     ## Top Reynolds Numbers
-    # Flat plate Reynolds number
-    Re = rho*v_a*chord/mu # Reynolds number
+    
 #    # Top surface laminar region
 #    Re_Laminar_top = Re*xcrit_top
 #    # Top surface transition region
@@ -379,14 +399,16 @@ def model(t,v_a,gamma,chi,h,x,y,E_batt,Tp_0,alpha_0,phi_0,w,smartsData,config_fi
     elif(config['aircraft']['name'] == 'Helios'):
         C_D_p = dsa * Re**(-1) + dsb * alpha_deg**(2) * Re**(-1)
     elif(config['aircraft']['name'] == 'Aquila E216'):
-        C_D_p = (dsa + dsb*alpha_deg + dsc*Re + dsd*alpha_deg*Re) / (1.0 + dsf*alpha_deg + dsg*Re + dsh*alpha_deg*alpha_deg)
-    
+        C_D_p = (dsa + dsb*alpha_deg + dsc*Re + dsd*alpha_deg*Re) / (1.0 + dsf*alpha_deg + dsg*Re + dsh*alpha_deg*Re)
+    elif(config['aircraft']['name'] == 'Aquila E216 New'):
+        C_D = dsa+dsb*Re+dsc*alpha_deg+dsd*alpha_deg*Re+dsf*alpha_deg**2+dsg*alpha_deg**2*Re
+        C_D_p = 0 # Just set this to zero to avoid errors in the data recording.
     
     # Oswald efficiency factor
-    k_e = 0.4*C_D_p
-    e_o = 1/((pi*AR*k_e) + (1/es))
+#    k_e = 0.4*C_D_p
+#    e_o = 1/((pi*AR*k_e) + (1/es))
     # Drag coefficient
-    C_D = C_D_p + cl**2/(pi*AR*e_o)
+#    C_D = C_D_p + cl**2/(pi*AR*e_o)
     
     #### Flight Dynamics
     #q = 1/2.0*rho*v_a**2 # Dynamic pressure (Pa)
@@ -484,7 +506,7 @@ def model(t,v_a,gamma,chi,h,x,y,E_batt,Tp_0,alpha_0,phi_0,w,smartsData,config_fi
     TE = E_batt + m*g*(h-h_0)*1e-6
     
     # Clip d_E_batt at maximum battery
-    bat_switch = 1/(1+exp(-10*(E_batmax - E_batt)))
+    bat_switch = 1/(1+exp(-(E_batmax - E_batt)))
     if(dE_Batt_dt>0):
         dE_Batt_dt = dE_Batt_dt * bat_switch
     
