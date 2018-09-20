@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 import os
 import pickle
+import jsonpickle
 import datetime
+import copy
 
 def setup_directories(config):
     '''
@@ -20,18 +22,38 @@ def setup_directories(config):
     # Add new results folder to config
     config.results_folder = results_folder
     config.time_stamp = str(time_stamp)
-        
-    # Save configuration file to output folder
-    config_filepath = os.path.join(results_folder,'config_file_' + str(time_stamp) +'.pkl')
-    save_object(config,config_filepath)
-        
-    print('Successfully created configuration file in ' + results_folder)
+
+    print('Successfully created output folder ' + results_folder)
         
     return config
 
-def save_object(obj, filename):
+def save_config(config):
+    # Save configuration file to output folder
+    results_folder = config.results_folder
+    time_stamp = config.time_stamp
+    config_filepath = os.path.join(results_folder,'config_file_' + str(time_stamp) +'.pkl')
+    save_pickle(config,config_filepath)
+    config.config_filepath_pickle = config_filepath
+    config_filepath = os.path.join(results_folder,'config_file_' + str(time_stamp) +'.json')
+    save_json(config,config_filepath)
+    config.config_filepath_json = config_filepath
+    
+    print('Successfully created configuration file in ' + results_folder)
+    
+
+def save_pickle(config, filename):
     with open(filename, 'wb') as output:  # Overwrites any existing file.
-        pickle.dump(obj, output, pickle.HIGHEST_PROTOCOL)
+        pickle.dump(config, output, pickle.HIGHEST_PROTOCOL)
+        
+def save_json(config, filename):
+    obj = copy.deepcopy(config)
+    del obj.solar.smartsData # Remove smartsData before saving json
+    with open(filename, 'w') as output:  # Overwrites any existing file.
+        output.write(jsonpickle.encode(obj,unpicklable=False))
+        
+def load_pickle(filename):
+    obj = pickle.load(open(filename,'rb'))
+    return obj
 
 class SolarLocation:
     def __init__(self,latitude,longitude,elevation,altitude,year,month,day,zone,name):
@@ -44,6 +66,7 @@ class SolarLocation:
         self.day = day
         self.zone = zone
         self.name = name
+        self.smartsData = None # Will be loaded later
         
 class Param:
     '''
@@ -55,3 +78,22 @@ class Param:
         self.max = max
         self.min = min
         self.units = units
+        
+class Var:
+    '''
+    Generic variable holder
+    '''
+    def __init__(self,ss_initial_guess=None,max=None,min=None,dmax=None,
+                 dcost=None,units=None,description=None,up=None,down=None,
+                 level=None,mode=None):
+        self.ss_initial_guess = ss_initial_guess
+        self.max = max
+        self.min = min
+        self.dmax = dmax
+        self.dcost = dcost
+        self.units = units
+        self.description = description
+        self.mode = mode
+        self.up = up
+        self.down = down
+        self.level = level

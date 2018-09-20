@@ -1,7 +1,8 @@
 
 import numpy as np
 import numbers
-from utilities import Param
+from utilities import Param, Var
+import yaml
 
 class Aircraft_Template:
     
@@ -10,6 +11,7 @@ class Aircraft_Template:
         self.mass_battery = Param(136.7,'kg')
         self.battery_energy_density = Param(350,'Whr/kg')
         self.battery_initial_SOC = Param(0.20,'N/A') # state of charge
+        self.battery_max = Param(self.mass_battery.value*self.battery_energy_density.value*0.0036,'MJ')
         # Mass
         self.mass_payload = Param(25,'kg')
         self.mass_structure = Param(213,'kg')
@@ -26,6 +28,7 @@ class Aircraft_Template:
         # Dynamics
         self.v = Var(
                     ss_initial_guess = 33,
+                    min = 0,
                     units = 'm/s',
                     description = 'velocity'
                      )
@@ -127,33 +130,6 @@ class Aircraft_Template:
         else:
             efficiency = eta*(1-beta*(T_11-Tref+(T_noct-20)*G_sol/G_noct)+gamma*m.log10(G_sol+0.01))
         return efficiency
-        
-#class Param:
-#    '''
-#    Generic parameter holder
-#    '''
-#    def __init__(self,value,units):
-#        self.value = value
-#        self.units = units
-        
-class Var:
-    '''
-    Generic variable holder
-    '''
-    def __init__(self,ss_initial_guess=None,max=None,min=None,dmax=None,
-                 dcost=None,units=None,description=None,up=None,down=None,
-                 level=None,mode=None):
-        self.ss_initial_guess = ss_initial_guess
-        self.max = max
-        self.min = min
-        self.dmax = dmax
-        self.dcost = dcost
-        self.units = units
-        self.description = description
-        self.mode = mode
-        self.up = up
-        self.down = down
-        self.level = level
         
 if __name__=='__main__':
     x = Aircraft_Template()

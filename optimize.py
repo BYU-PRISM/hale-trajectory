@@ -11,20 +11,20 @@ import sys
 def optimize_trajectory(m,config):
     
     # Set timestep
-    step = config['optimization']['time_step']['value']
+    step = config.time_step.value
     
     # Load solar data for whole day
-    time_stamp = config['file']['time_stamp']
-    filename = os.path.join(config['file']['results_folder'],'apm_input_' + time_stamp + '.csv')
+    time_stamp = config.time_stamp
+    filename = os.path.join(config.results_folder,'apm_input_' + time_stamp + '.csv')
     dayDataPart = pd.read_csv(filename,delimiter=',')
     
     filename = 'time_mpc_' + str(step) + 's.csv'
     
     # Global Options
-    m.options.max_iter = config['optimization']['max_iterations']
+    m.options.max_iter = config.max_iterations
     m.options.cv_type = 1
-    m.options.time_shift = config['optimization']['time_shift']
-    time_shift = config['optimization']['time_shift']
+    m.options.time_shift = config.time_shift_steps
+    time_shift = config.time_shift_steps
     m.options.csv_read = 2
     m.options.nodes = 2
     m.options.reduce = 4
@@ -38,29 +38,28 @@ def optimize_trajectory(m,config):
     # Setup Variables
     m.alpha.status = 1
     m.alpha.fstatus = 0
-    m.alpha.lower = config['trajectory']['alpha']['min']
-    m.alpha.upper = config['trajectory']['alpha']['max']
-    m.alpha.dmax = config['trajectory']['alpha']['dmax']
-    m.alpha.dcost = config['trajectory']['alpha']['dcost']
+    m.alpha.lower = config.aircraft.alpha.min
+    m.alpha.upper = config.aircraft.alpha.max
+    m.alpha.dmax = config.aircraft.alpha.dmax
+    m.alpha.dcost = config.aircraft.alpha.dcost
     m.phi.status = 1
     m.phi.fstatus = 0
-    m.phi.lower = config['trajectory']['phi']['min']
-    m.phi.upper = config['trajectory']['phi']['max']
-    m.phi.dmax = config['trajectory']['phi']['dmax']
-    m.phi.dcost = config['trajectory']['phi']['dcost']
-    m.phi.cost = config['trajectory']['phi']['cost']
+    m.phi.lower = config.aircraft.phi.min
+    m.phi.upper = config.aircraft.phi.max
+    m.phi.dmax = config.aircraft.phi.dmax
+    m.phi.dcost = config.aircraft.phi.dcost
     m.tp.status = 1
     m.tp.fstatus = 0
-    m.tp.lower = config['trajectory']['tp']['min']
-    m.tp.upper = config['trajectory']['tp']['max']
-    m.tp.dmax = config['trajectory']['tp']['dmax']
-    m.tp.dcost = config['trajectory']['tp']['dcost']
+    m.tp.lower = config.aircraft.tp.min
+    m.tp.upper = config.aircraft.tp.max
+    m.tp.dmax = config.aircraft.tp.dmax
+    m.tp.dcost = config.aircraft.tp.dcost
     m.p_bat.status = 1
     m.p_bat.fstatus = 0
     
     #CVs
     m.dist.status = 1
-    m.dist.sphi = config['trajectory']['x']['max']
+    m.dist.sphi = config.x.max
     m.dist.splo = 0
     m.dist.wsphi = 10
     m.dist.wsplo = 0
@@ -68,12 +67,12 @@ def optimize_trajectory(m,config):
     
     
     # Initialize storage from first row of steady state solution
-    filenameSim = os.path.join(config['file']['results_folder'],'ss_results_' + str(time_stamp) + '_test' + '.xlsx')
+    filenameSim = os.path.join(config.results_folder,'ss_results_' + str(time_stamp) + '.xlsx')
     ss_data = pd.read_excel(filenameSim)
     dataOut = ss_data.head(1)
     
     # Use steady state values for initial guess
-    if(config['wind']['use_wind']==False):
+    if(config.use_wind==False):
         columns = ['time', 'flux','t','zenith','azimuth','sn1','sn2','sn3',
                    'tp', 'phi', 'alpha', 'gamma', 'psi', 'v', 'x', 'y', 'h','dist','te','e_batt']
     else:
@@ -82,14 +81,14 @@ def optimize_trajectory(m,config):
     ss_data = ss_data[columns]
     
     # Load loop parameters
-    horizon_length = config['optimization']['horizon_length']
-    time_step = config['optimization']['time_step']['value']
-    start_time = config['optimization']['start_time']['value']
-    end_time = config['optimization']['end_time']['value']
+    horizon_length = config.horizon_steps
+    time_step = config.time_step.value
+    start_time = config.start_time.value
+    end_time = config.end_time.value
     
     length = int(3600*(end_time - start_time)/time_step - horizon_length)
     
-    save_freq = config['optimization']['iteration_save_frequency']
+    save_freq = config.iteration_save_frequency
     
     # Begin timing
     start = tm.time()
@@ -111,13 +110,13 @@ def optimize_trajectory(m,config):
         iter_start = tm.time()
     #    # Constrict MVs at start
         if(i<250):
-            m.tp.dcost = config['trajectory']['tp']['dcost']*(1/((i+1)/250))
-            m.phi.dcost = config['trajectory']['phi']['dcost']*(1/((i+1)/250))
-            m.alpha.dcost = config['trajectory']['alpha']['dcost']*(1/((i+1)/250))
+            m.tp.dcost = config.aircraft.tp.dcost*(1/((i+1)/250))
+            m.phi.dcost = config.aircraft.phi.dcost*(1/((i+1)/250))
+            m.alpha.dcost = config.aircraft.alpha.dcost*(1/((i+1)/250))
         else:
-            m.tp.dcost = config['trajectory']['tp']['dcost']
-            m.phi.dcost = config['trajectory']['phi']['dcost']
-            m.alpha.dcost = config['trajectory']['alpha']['dcost']
+            m.tp.dcost = config.aircraft.tp.dcost
+            m.phi.dcost = config.aircraft.phi.dcost
+            m.alpha.dcost = config.aircraft.alpha.dcost
         
         if(i==0):
             df1 = ss_data.iloc[0:horizon_length+1,:]
@@ -132,7 +131,7 @@ def optimize_trajectory(m,config):
             m.phi.value = df1['phi'].values
             m.alpha.value = df1['alpha'].values
             m.gamma.value = df1['gamma'].values
-            if(config['wind']['use_wind']):
+            if(config.use_wind):
                 m.chi.value = df1['chi'].values
                 m.v_g.value = df1['v_g'].values
                 m.v_a.value = df1['v_a'].values
@@ -156,7 +155,7 @@ def optimize_trajectory(m,config):
             m.sn2.value = df1['sn2'].values
             m.sn3.value = df1['sn3'].values
             
-        m.solve()
+        m.solve(debug=True)
     
 
         print('*************************************')
@@ -175,10 +174,10 @@ def optimize_trajectory(m,config):
         if(success_check==1):
             # Then grab extra data from the server
             objfcnval = m.options.objfcnval
-            iterations = 0#[int(s) for s in [s for s in solver_output if "Iterations" in s][0].split() if s.isdigit()][0]
+            iterations = 0
         else:
             print('No successful solution found.')
-            iterations = 0#[int(s) for s in [s for s in solver_output if "Iterations" in s][0].split() if s.isdigit()][0]  
+            iterations = 0 
             objfcnval = 0 
        
 #%%
@@ -189,9 +188,9 @@ def optimize_trajectory(m,config):
             m.tp.dcost = 0.05/(30.0/time_step)/100*20
             m.phi.dcost = 0.5/(30.0/time_step)*20
         else:
-            m.alpha.dcost = config['trajectory']['alpha']['dcost']
-            m.tp.dcost = config['trajectory']['tp']['dcost']
-            m.phi.dcost = config['trajectory']['phi']['dcost']
+            m.alpha.dcost = config.aircraft.alpha.dcost
+            m.tp.dcost = config.aircraft.tp.dcost
+            m.phi.dcost = config.aircraft.phi.dcost
             
         if(success_check==0):
             print('#####################################')
@@ -212,11 +211,11 @@ def optimize_trajectory(m,config):
             if(success_check==1):
                 # Then grab extra data from the server
                 objfcnval = m.options.objfcnval
-                iterations = 0#[int(s) for s in [s for s in solver_output if "Iterations" in s][0].split() if s.isdigit()][0]
+                iterations = 0
                 resolve = 1
             else:
                 print('No successful solution found.')
-                iterations = 0#[int(s) for s in [s for s in solver_output if "Iterations" in s][0].split() if s.isdigit()][0]  
+                iterations = 0
                 objfcnval = 0 
         
     #%%
@@ -225,11 +224,10 @@ def optimize_trajectory(m,config):
         # Get Solution
         sol = m.load_results()
         solData = pd.DataFrame.from_dict(sol) # convert APM solution to dataFrame
-    #    solData = solData.iloc[0,:] # Use only first time step of solution <--- How will/should this change on the final timesteps? We'll want to grab everything then.
         if(i==range(0,length,time_shift)[-1]):
             solData = solData.iloc[1:,:]
         else:
-            solData = solData.iloc[1:time_shift+1,:]    # Changed to one to grab the new solution data instead of the old guess value...
+            solData = solData.iloc[1:time_shift+1,:]
         solData['successful_solution'] = success_check
         solData['iterations'] = iterations
         solData['objfcnval'] = objfcnval
@@ -237,14 +235,14 @@ def optimize_trajectory(m,config):
         solData['iteration_time'] = tm.time()-iter_start
         solData['re-solve'] = resolve
         # Append to full array
-        if(config['wind']['use_wind']==False):
+        if(config.use_wind==False):
             columns = ['time', 'tp', 'phi', 'theta', 'alpha', 'gamma', 'psi', 'v', 'x', 'y', 'h', 'dist', 'te', 'e_batt', 'p_bat', 'p_n', 'p_solar', 'p_total', 'panel_efficiency',
-                   'd', 'c_d', 'c_d_p', 'cl', 'rho', 'mu', 't_air', 're', 'nh', 'nv', 'nu_prop', 't', 'flux', 'g_sol', 'mu_solar', 'azimuth', 'zenith', 'sn1', 'sn2', 'sn3', 'sunset', 'mu_clipped', 
+                   'd', 'c_d', 'cl', 'rho', 'mu', 't_air', 're', 'nh', 'nv', 'nu_prop', 't', 'flux', 'g_sol', 'mu_solar', 'azimuth', 'zenith', 'sn1', 'sn2', 'sn3', 'sunset', 'mu_clipped', 
                    'mu_slack', 'timestamp', 'iterations', 'objfcnval', 'successful_solution', 
                    'iteration_time', 're-solve']
         else:
             columns = ['time', 'tp', 'phi', 'theta', 'alpha', 'beta', 'gamma', 'psi','chi', 'v_g', 'v_a', 'x', 'y', 'h', 'dx', 'dy' ,'dist', 'te', 'e_batt', 'p_bat', 'p_n', 'p_solar', 'ptotal', 'panel_efficiency',
-                   'd', 'cd', 'c_d_p', 'cl', 'rho', 'mu', 'tair', 're', 'nh', 'nv', 'nu_prop', 't', 'flux', 'g_sol', 'mu_solar', 'azimuth', 'zenith', 'sn1', 'sn2', 'sn3','w_n','w_e','w_d', 'sunset', 'mu_clipped', 
+                   'd', 'cd', 'cl', 'rho', 'mu', 'tair', 're', 'nh', 'nv', 'nu_prop', 't', 'flux', 'g_sol', 'mu_solar', 'azimuth', 'zenith', 'sn1', 'sn2', 'sn3','w_n','w_e','w_d', 'sunset', 'mu_clipped', 
                    'mu_slack', 'timestamp', 'iterations', 'objfcnval', 'successful_solution', 
                    'iteration_time', 're-solve']
 
@@ -260,7 +258,7 @@ def optimize_trajectory(m,config):
             print('Saving Intermediate Results...')
             
             # Create intermediates folder if needed
-            path = os.path.join(config['file']['results_folder'] , 'Intermediates' )
+            path = os.path.join(config.results_folder , 'Intermediates' )
             if not os.path.exists(path):
                 os.makedirs(path)
                 
@@ -271,8 +269,8 @@ def optimize_trajectory(m,config):
             
             # Clean up old files
             data_file_list = glob.glob(path+'/*.xlsx')
-            if(len(data_file_list)>5):
-                files_to_remove = data_file_list[0:4]
+            if(len(data_file_list)>3):
+                files_to_remove = data_file_list[0:2]
                 for file in files_to_remove:
                     try:
                         os.remove(file)
@@ -290,7 +288,7 @@ def optimize_trajectory(m,config):
     #%%
     
     ## Results to File
-    filename_out = os.path.join(config['file']['results_folder'],'./opt_results_' + '{:%Y_%m_%d_%H_%M_%S}'.format(datetime.datetime.now()) + '.xlsx')
+    filename_out = os.path.join(config.results_folder,'./opt_results_' + '{:%Y_%m_%d_%H_%M_%S}'.format(datetime.datetime.now()) + '.xlsx')
     dataOut_custom.to_excel(filename_out,index=False)
     print('Results retrieved')
     

@@ -3,7 +3,7 @@ import numpy as np
 from numpy import pi, sqrt, cos, sin, exp, tan
 from solar_functions import solarFlux
 
-def uavDynamics(a1,a2,a3,h_0,v_0,smartsData,config,mode):
+def uavDynamics(a1,a2,a3,h_0,v_0,config,mode):
     '''
     This function makes it possible to use the same model for root finding,
     integration, power calculations and post processing
@@ -69,7 +69,7 @@ def uavDynamics(a1,a2,a3,h_0,v_0,smartsData,config,mode):
         pass
         
     ## Run Model
-    m = model(t,v,gamma,psi,h,x,y,E_Batt,Tp_0,alpha_0,phi_0,smartsData,config,mode)
+    m = model(t,v,gamma,psi,h,x,y,E_Batt,Tp_0,alpha_0,phi_0,config,mode)
         
     ## Process Outputs
     if(mode==1):
@@ -107,7 +107,7 @@ def uavDynamics(a1,a2,a3,h_0,v_0,smartsData,config,mode):
         
     return output
 
-def model(t,v,gamma,psi,h,x,y,E_batt,Tp_0,alpha_0,phi_0,smartsData,config,mode):
+def model(t,v,gamma,psi,h,x,y,E_batt,Tp_0,alpha_0,phi_0,config,mode):
     '''
     Inputs
     
@@ -185,19 +185,8 @@ def model(t,v,gamma,psi,h,x,y,E_batt,Tp_0,alpha_0,phi_0,smartsData,config,mode):
     #### Power
     P_N = P_payload + v*Tp/nu_prop # Power Needed by Aircraft
     
-    # Solar
-    lat = config.solar.latitude # 35.0853
-    lon = config.solar.longitude # -106.6056
-    elevation = config.solar.elevation # 1.619
-    altitude = config.solar.altitude # 20
-    year = config.solar.year # 2016
-    month = config.solar.month # 12
-    day = config.solar.day # 21
-    zone = config.solar.zone # -7
-    
     if(mode==1 or mode==5):
-        solar_data = solarFlux(smartsData,lat,lon,elevation, altitude, year, month, day, t/3600.0, zone, orientation=True,
-                               phi = phi,theta = theta, psi = psi)
+        solar_data = solarFlux(config.solar.smartsData, t/3600.0, phi,theta, psi)
         G_sol = solar_data[0][0]
         zenith = solar_data[0][1]
         azimuth = solar_data[0][2]

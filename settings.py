@@ -3,8 +3,11 @@
 import numpy as np
 from pydoc import locate
 import sys
+import jsonpickle
+import os
 
 from utilities import SolarLocation, Param
+from solar_functions import loadSmartsData
 
 class Settings:
     
@@ -63,8 +66,11 @@ class Settings:
         self.linear_solver = 'ma57'
         
         # Output folder label
+        self.results_folder = ''
+        self.time_stamp = ''
         self.description = 'Test'
         self.full_description = 'Insert full description here'
+        
 
 class SolarLocations:
     albuquerque_winter_solstice = SolarLocation(
@@ -133,7 +139,7 @@ def process_settings(config):
     Aircraft = locate('Aircraft.' + config.aircraft_name + '.Aircraft')
     config.aircraft = Aircraft()
     
-    # Calculate starting and ending times
+    # Calculate starting and ending times for the optimization run
     solar_data = config.solar.name
     
     # Assuming a Dawn start time
@@ -157,6 +163,20 @@ def process_settings(config):
                         value = start_time + 24,
                         units = 'hrs'
                         )
+    
+    # Pre-Load solar data for the day
+    ## Pre-Load solar data for the day
+    lat = config.solar.latitude 
+    lon = config.solar.longitude 
+    elevation = config.solar.elevation 
+    altitude = config.solar.altitude 
+    year = config.solar.year 
+    month = config.solar.month 
+    day = config.solar.day 
+    zone = config.solar.zone 
+    smartsData = loadSmartsData(lat,lon,elevation, altitude, year,
+                  month, day, zone)
+    config.solar.smartsData = smartsData
         
     # Update initial heading and bank angle based on clockwise/counter clockwise start
     initial_direction = config.initial_direction
@@ -170,6 +190,7 @@ def process_settings(config):
     config.aircraft.psi.initial_value = initial_heading
     config.aircraft.phi.initial_value = phi_0
     
+    # Get time values
     horizon = config.horizon_length.value
     time_step = config.time_step.value
     distance = config.distance.max
@@ -179,7 +200,7 @@ def process_settings(config):
     config.horizon_steps = int(horizon/time_step*60*distance/3000)
     
     # Convert timeshift from time to timesteps
-    config.timeshift_steps = int(np.round(time_shift/time_step))
+    config.time_shift_steps = int(np.round(time_shift/time_step))
     
     return config
 
