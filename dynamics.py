@@ -1,7 +1,7 @@
 from __future__ import division
 import numpy as np
 from numpy import pi, sqrt, cos, sin, exp, tan
-from solar_functions import solarFlux
+from solar import solarFlux
 
 def uavDynamics(a1,a2,a3,h_0,v_0,config,mode):
     '''

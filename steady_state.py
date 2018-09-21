@@ -153,17 +153,12 @@ def process_steady_state(config,solData,MV,t):
     solData['phi'] = MV[2]
     solData['e_batt_max'] = config.aircraft.battery_max.value
     
-    # Save out data for MPC
-    time_stamp = config.time_stamp
-    solDataOut = solData[['time', 'flux', 't','zenith','azimuth','sn1','sn2','sn3','sun_h']]
-    filename = os.path.join(config.results_folder,'apm_input_' + time_stamp + '.csv')
-    solDataOut.to_csv(filename, index=False)
-    
     # Save out steady state solution
+    time_stamp = config.time_stamp
     simDataOut = solData[['time', 'tp', 'phi', 'theta', 'alpha', 'gamma', 'psi', 'v', 'x', 'y', 'h', 'dist', 'te', 'e_batt', 'e_batt_max', 'p_bat', 'p_n', 'p_solar', 'panel_efficiency',
                           'd', 'cd', 'cl', 'rho', 're', 'm', 'nh', 'nv', 'nu_prop', 't', 'flux', 'g_sol', 'mu_solar', 'azimuth', 'zenith', 'sn1', 'sn2', 'sn3']]
     
-    filenameSim = filename = os.path.join(config.results_folder,'ss_results_' + str(time_stamp) + '.xlsx')
+    filenameSim = os.path.join(config.results_folder,'ss_results_' + str(time_stamp) + '.xlsx')
     simDataOut.to_excel(filenameSim, index=False)
     
     # Update initial values for optimization in config file to be updated in model file

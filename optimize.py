@@ -10,16 +10,6 @@ import sys
 
 def optimize_trajectory(m,config):
     
-    # Set timestep
-    step = config.time_step.value
-    
-    # Load solar data for whole day
-    time_stamp = config.time_stamp
-    filename = os.path.join(config.results_folder,'apm_input_' + time_stamp + '.csv')
-    dayDataPart = pd.read_csv(filename,delimiter=',')
-    
-    filename = 'time_mpc_' + str(step) + 's.csv'
-    
     # Global Options
     m.options.max_iter = config.max_iterations
     m.options.cv_type = 1
@@ -34,6 +24,8 @@ def optimize_trajectory(m,config):
     m.options.imode = 6
     m.options.otol = 1e-4
     m.options.rtol = 1e-4
+    # This was added after the paper
+    m.solver_options = ['linear_solver '+ config.linear_solver]
     
     # Setup Variables
     m.alpha.status = 1
@@ -65,20 +57,10 @@ def optimize_trajectory(m,config):
     m.dist.wsplo = 0
     m.dist.tr_init = 0
     
-    
     # Initialize storage from first row of steady state solution
-    filenameSim = os.path.join(config.results_folder,'ss_results_' + str(time_stamp) + '.xlsx')
+    filenameSim = os.path.join(config.results_folder,'ss_results_' + str(config.time_stamp) + '.xlsx')
     ss_data = pd.read_excel(filenameSim)
     dataOut = ss_data.head(1)
-    
-    # Use steady state values for initial guess
-    if(config.use_wind==False):
-        columns = ['time', 'flux','t','zenith','azimuth','sn1','sn2','sn3',
-                   'tp', 'phi', 'alpha', 'gamma', 'psi', 'v', 'x', 'y', 'h','dist','te','e_batt']
-    else:
-        columns = ['time', 'flux','t','zenith','azimuth','sn1','sn2','sn3',
-                   'tp', 'phi', 'alpha', 'gamma','chi', 'v_g', 'v_a', 'x', 'y', 'h','dist','te','e_batt']
-    ss_data = ss_data[columns]
     
     # Load loop parameters
     horizon_length = config.horizon_steps
@@ -98,64 +80,101 @@ def optimize_trajectory(m,config):
     
     # MPC Loop
     for i in range(0,length,time_shift):
-        print('*************************************')
-        print('*************************************')
-        print('')
-        print('Begin Iteration: ' +str(i))
-        print('')
-        print('*************************************')
-        print('*************************************')
+        
+        # Initialize re-solve to zero, we'll attempt to solve until we succeed or resolve
+        # hits the max resolves, adjusting the options each time if needed.
+        resolve = 0
+        max_resolve = 3
+        success_check = 0
+        
+        while(success_check==0 and resolve < max_resolve):
+        
+            print('*************************************')
+            print('*************************************')
+            print('')
+            print('Begin Iteration: ' +str(i))
+            print('')
+            print('*************************************')
+            print('*************************************')
         
         
-        iter_start = tm.time()
-    #    # Constrict MVs at start
-        if(i<250):
-            m.tp.dcost = config.aircraft.tp.dcost*(1/((i+1)/250))
-            m.phi.dcost = config.aircraft.phi.dcost*(1/((i+1)/250))
-            m.alpha.dcost = config.aircraft.alpha.dcost*(1/((i+1)/250))
-        else:
-            m.tp.dcost = config.aircraft.tp.dcost
-            m.phi.dcost = config.aircraft.phi.dcost
-            m.alpha.dcost = config.aircraft.alpha.dcost
+            iter_start = tm.time()
         
-        if(i==0):
-            df1 = ss_data.iloc[0:horizon_length+1,:]
-            m.flux.value = df1['flux'].values
-            m.t.value = df1['t'].values
-            m.zenith.value = df1['zenith'].values
-            m.azimuth.value = df1['azimuth'].values
-            m.sn1.value = df1['sn1'].values
-            m.sn2.value = df1['sn2'].values
-            m.sn3.value = df1['sn3'].values
-            m.tp.value = df1['tp'].values
-            m.phi.value = df1['phi'].values
-            m.alpha.value = df1['alpha'].values
-            m.gamma.value = df1['gamma'].values
-            if(config.use_wind):
-                m.chi.value = df1['chi'].values
-                m.v_g.value = df1['v_g'].values
-                m.v_a.value = df1['v_a'].values
+            # Constrict MVs at start, this forces the optimizer to stay closer to the 
+            # steady state solution for the first few iterations.  Seems to help convergence
+            # sometimes
+            if(i<250):
+                m.tp.dcost = config.aircraft.tp.dcost*(1/((i+1)/250))
+                m.phi.dcost = config.aircraft.phi.dcost*(1/((i+1)/250))
+                m.alpha.dcost = config.aircraft.alpha.dcost*(1/((i+1)/250))
             else:
-                m.psi.value = df1['psi'].values
-                m.v.value = df1['v'].values
-            m.x.value = df1['x'].values
-            m.y.value = df1['y'].values
-            m.h.value = df1['h'].values
-            m.dist.value = df1['dist'].values
-            m.e_batt.value = df1['e_batt'].values
-            m.te.value = df1['te'].values
-            m.p_total.value = np.zeros(len(df1))
-        else:
-            df1 = dayDataPart.iloc[i:i+horizon_length+1,:]
-            m.flux.value = df1['flux'].values
-            m.t.value = df1['t'].values
-            m.zenith.value = df1['zenith'].values
-            m.azimuth.value = df1['azimuth'].values
-            m.sn1.value = df1['sn1'].values
-            m.sn2.value = df1['sn2'].values
-            m.sn3.value = df1['sn3'].values
+                m.tp.dcost = config.aircraft.tp.dcost
+                m.phi.dcost = config.aircraft.phi.dcost
+                m.alpha.dcost = config.aircraft.alpha.dcost
+        
+            # For the first iteration, load the steady state as an initial guess
+            if(i==0):
+                df1 = ss_data.iloc[0:horizon_length+1,:]
+                m.flux.value = df1['flux'].values
+                m.t.value = df1['t'].values
+                m.zenith.value = df1['zenith'].values
+                m.azimuth.value = df1['azimuth'].values
+                m.sn1.value = df1['sn1'].values
+                m.sn2.value = df1['sn2'].values
+                m.sn3.value = df1['sn3'].values
+                m.tp.value = df1['tp'].values
+                m.phi.value = df1['phi'].values
+                m.alpha.value = df1['alpha'].values
+                m.gamma.value = df1['gamma'].values
+                if(config.use_wind):
+                    m.chi.value = df1['chi'].values
+                    m.v_g.value = df1['v_g'].values
+                    m.v_a.value = df1['v_a'].values
+                else:
+                    m.psi.value = df1['psi'].values
+                    m.v.value = df1['v'].values
+                m.x.value = df1['x'].values
+                m.y.value = df1['y'].values
+                m.h.value = df1['h'].values
+                m.dist.value = df1['dist'].values
+                m.e_batt.value = df1['e_batt'].values
+                m.te.value = df1['te'].values
+                m.p_total.value = np.zeros(len(df1))
+            else:
+                # After the first iteration just load new solar values
+                df1 = ss_data.iloc[i:i+horizon_length+1,:]
+                m.flux.value = df1['flux'].values
+                m.t.value = df1['t'].values
+                m.zenith.value = df1['zenith'].values
+                m.azimuth.value = df1['azimuth'].values
+                m.sn1.value = df1['sn1'].values
+                m.sn2.value = df1['sn2'].values
+                m.sn3.value = df1['sn3'].values
+                
+            # Adjust settings for progressive re-solves
+            if(resolve==0 and i > 250):
+                m.alpha.dcost = config['trajectory']['alpha']['dcost']
+                m.rpm.dcost = config['trajectory']['rpm']['dcost']
+                m.phi.dcost = config['trajectory']['phi']['dcost']
+                m.options.nodes = 2
+            elif(resolve==1):
+                m.alpha.dcost = config['trajectory']['alpha']['dcost']*1.3
+                m.rpm.dcost = config['trajectory']['rpm']['dcost']*1.3
+                m.phi.dcost = config['trajectory']['phi']['dcost']*1.3
+                m.options.nodes = 2
+            elif(resolve==2):
+                m.alpha.dcost = config['trajectory']['alpha']['dcost']*1.5
+                m.rpm.dcost = config['trajectory']['rpm']['dcost']*1.5
+                m.phi.dcost = config['trajectory']['phi']['dcost']*1.5
+                m.options.nodes = 3
             
-        m.solve(debug=True)
+            # Optimize over the solution horizon
+            m.solve(debug=True)
+            
+            # Check to see if APMonitor returned successful
+            success_check = m.options.appstatus
+            if not success_check:
+                resolve = resolve + 1
     
 
         print('*************************************')
@@ -165,72 +184,21 @@ def optimize_trajectory(m,config):
         print('')
         print('*************************************')
         print('*************************************')
-    
-    #%% Regular Error handling
         
-        # First check to see if it solved
-        success_check = m.options.appstatus
-        
-        if(success_check==1):
-            # Then grab extra data from the server
-            objfcnval = m.options.objfcnval
-            iterations = 0
-        else:
-            print('No successful solution found.')
-            iterations = 0 
-            objfcnval = 0 
-       
-#%%
-        # Retry solve if we failed the first time
-        resolve = 0
-        if(success_check==0):
-            m.alpha.dcost = 0.5/(30.0/time_step)*0.7*20
-            m.tp.dcost = 0.05/(30.0/time_step)/100*20
-            m.phi.dcost = 0.5/(30.0/time_step)*20
-        else:
-            m.alpha.dcost = config.aircraft.alpha.dcost
-            m.tp.dcost = config.aircraft.tp.dcost
-            m.phi.dcost = config.aircraft.phi.dcost
-            
-        if(success_check==0):
-            print('#####################################')
-            print('#####################################')
-            print('')
-            print('Attempting re-solve for Iteration: ' +str(i))
-            print('')
-            print('#####################################')
-            print('#####################################')
-                
-            m.solve()
-            
-            #%% Regular Error handling
-            
-            # First check to see if it solved
-            success_check = m.options.appstatus
-            
-            if(success_check==1):
-                # Then grab extra data from the server
-                objfcnval = m.options.objfcnval
-                iterations = 0
-                resolve = 1
-            else:
-                print('No successful solution found.')
-                iterations = 0
-                objfcnval = 0 
-        
-    #%%
-    
+        #%% Retrieve results    
         
         # Get Solution
         sol = m.load_results()
         solData = pd.DataFrame.from_dict(sol) # convert APM solution to dataFrame
+        # If this is the last time step, grab the whole horizon
         if(i==range(0,length,time_shift)[-1]):
             solData = solData.iloc[1:,:]
+        # Otherwise we just need the first time_shift number of points
         else:
             solData = solData.iloc[1:time_shift+1,:]
         solData['successful_solution'] = success_check
-        solData['iterations'] = iterations
-        solData['objfcnval'] = objfcnval
+        solData['iterations'] = 0
+        solData['objfcnval'] = m.options.objfcnval
         solData['timestamp'] = '{:%Y_%m_%d_%H_%M_%S}'.format(datetime.datetime.now())
         solData['iteration_time'] = tm.time()-iter_start
         solData['re-solve'] = resolve
@@ -246,12 +214,16 @@ def optimize_trajectory(m,config):
                    'mu_slack', 'timestamp', 'iterations', 'objfcnval', 'successful_solution', 
                    'iteration_time', 're-solve']
 
-
+        # Reorder the columns as desired
         solData_custom = solData[columns]
+        
+        # Reindex time to match up to time since dawn
         solData_custom['time'] = solData_custom['t'] - start_time * 3600
         solData_custom.columns = columns
+        # Append this to the data history
         dataOut = dataOut.append(solData_custom)
         
+        # Save data to file at specified frequency
         print('Iteration Time: ' +str(tm.time()-iter_start))
         if(i%save_freq==0): #
             ## Results to File
@@ -276,7 +248,6 @@ def optimize_trajectory(m,config):
                         os.remove(file)
                     except:
                         pass
-                
         
         # Check for repeated failed solutions
         last_ten = (len(dataOut['successful_solution'].tail(10*time_shift)) - dataOut['successful_solution'].tail(10*time_shift).sum())/time_shift
@@ -287,18 +258,12 @@ def optimize_trajectory(m,config):
     
     #%%
     
-    ## Results to File
+    ## Save Final Results to File
     filename_out = os.path.join(config.results_folder,'./opt_results_' + '{:%Y_%m_%d_%H_%M_%S}'.format(datetime.datetime.now()) + '.xlsx')
     dataOut_custom.to_excel(filename_out,index=False)
     print('Results retrieved')
+    print('OPTIMIZATION COMPLETE')
     
     end = tm.time()
     solveTime = end - start
-    start = tm.time()
-    
-    end = tm.time()
-    plotTime = end - start
-    totalTime = solveTime + plotTime
     print("Solve Time: " + str('{:.2f}'.format(solveTime/3600)) + ' hrs')
-    print("Plot Time: " + str(plotTime))
-    print("Total Time: " + str(totalTime))

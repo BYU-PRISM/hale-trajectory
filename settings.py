@@ -3,11 +3,9 @@
 import numpy as np
 from pydoc import locate
 import sys
-import jsonpickle
-import os
 
 from utilities import SolarLocation, Param
-from solar_functions import loadSmartsData
+from solar import loadSmartsData
 
 class Settings:
     
@@ -38,10 +36,11 @@ class Settings:
         
         # Environment
         self.solar = SolarLocations.albuquerque_winter_solstice # Time and location for solar calculations
+        # Wind hasn't been ported over yet - leave at False for now
         self.use_wind = False
-        self.w_n = 0 # Wind north component
-        self.w_e = 0 # Wind east component
-        self.w_d = 0 # Wind down component
+#        self.w_n = 0 # Wind north component
+#        self.w_e = 0 # Wind east component
+#        self.w_d = 0 # Wind down component
         
         # Aircraft settings
         # Aircraft data will be loaded in the process_settings command based on this name
@@ -201,6 +200,9 @@ def process_settings(config):
     
     # Convert timeshift from time to timesteps
     config.time_shift_steps = int(np.round(time_shift/time_step))
+    
+    # Map aircraft solar panel efficiency to solar
+    
     
     return config
 

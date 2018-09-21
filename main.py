@@ -6,6 +6,7 @@ from steady_state import circular_orbit
 from define_model import define_model
 from optimize import optimize_trajectory
 from utilities import save_config
+from plotting import plot_all
 
 #%% Setup
 # Load configuration settings
@@ -31,4 +32,5 @@ m = define_model(config)
 # Optimize
 optimize_trajectory(m,config)
 
-##%% Post Processing and Plotting
+#%% Post Processing and Plotting
+plot_all(config.results_folder,config)
