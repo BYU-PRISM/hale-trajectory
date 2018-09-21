@@ -6,7 +6,7 @@ The code produces energy optimal trajectories for solar powered HALE aircraft us
 
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+These instructions will get you a copy of the project up and running on your local machine.
 
 ### Prerequisites
 
@@ -20,7 +20,9 @@ SMARTS
 
 ## Running the code
 
-Explain how to run the automated tests for this system
+Explain how to run the default optimization case.
+
+### Settings
 
 ### Viewing Dashboard
 
@@ -32,17 +34,11 @@ Give an example
 
 ## Custom Aircraft
 
-Add additional notes about how to deploy this on a live system
+Add additional notes about how to use a custom aircraft.
 
 ## Built With
 
 * [GEKKO](https://gekko.readthedocs.io/en/latest/index.html) - The dynamic optimization package used
-
-## Authors
-
-* **Billie Thompson** - *Initial work* - [PurpleBooth](https://github.com/PurpleBooth)
-
-See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
 
 ## License
 
