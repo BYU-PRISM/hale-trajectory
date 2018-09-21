@@ -169,7 +169,7 @@ def optimize_trajectory(m,config):
                 m.options.nodes = 3
             
             # Optimize over the solution horizon
-            m.solve(debug=True)
+            m.solve()
             
             # Check to see if APMonitor returned successful
             success_check = m.options.appstatus

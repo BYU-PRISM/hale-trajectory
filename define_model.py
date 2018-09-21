@@ -11,7 +11,7 @@ def define_model(config):
     app = 'hale_' + '{:%Y_%m_%d_%H_%M_%S}'.format(datetime.datetime.now())
     
     #Initialize model
-    m = GEKKO(server,app)
+    m = GEKKO(remote=True,server=server,name=app)
 
     #%% Constants
     
