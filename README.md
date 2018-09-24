@@ -41,6 +41,10 @@ To use the browser-based viewing dashboard, run the dashboard.py file after star
 
 The default aircraft used in the optimization is a large flying wing.  To use another aircraft, create a new class in the Aircraft folder that inherits the aircraft_template class.  Then override the necessary parameters and methods.  See the aquila_e216.py file for an example.
 
+## Custom Date/Location
+
+To create a mission with a custom date or location, edit the SolarLocations class in solar.py
+
 ## Built With
 
 * [GEKKO](https://gekko.readthedocs.io/en/latest/index.html) - The dynamic optimization package used to calculate the optimized trajectories.
