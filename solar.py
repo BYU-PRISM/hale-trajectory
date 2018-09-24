@@ -15,6 +15,64 @@ from subprocess import Popen
 import subprocess
 import shutil
 import sys
+from utilities import SolarLocation
+
+class SolarLocations:
+    albuquerque_winter_solstice = SolarLocation(
+                latitude = 35.0853,
+                longitude = -106.6056,
+                elevation = 1.619, # Terrain elevation km
+                altitude = 20, # Aircraft initial height km
+                year = 2016,
+                month = 12,
+                day = 21,
+                zone = -7, # Time zone relative to GMT
+                name = 'albuquerque_winter_solstice'
+                )
+    albuquerque_summer_solstice = SolarLocation(
+                latitude = 35.0853,
+                longitude = -106.6056,
+                elevation = 1.619, # Terrain elevation km
+                altitude = 20, # km
+                year = 2016,
+                month = 6,
+                day = 20,
+                zone = -7, # Time zone relative to GMT
+                name = 'albuquerque_summer_solstice'
+                )        
+    albuquerque_spring_equinox = SolarLocation(
+                latitude = 35.0853,
+                longitude = -106.6056,
+                elevation = 1.619, # Terrain elevation km
+                altitude = 20, # km
+                year = 2016,
+                month = 3,
+                day = 19,
+                zone = -7, # Time zone relative to GMT
+                name = 'albuquerque_spring_equinox'
+                )      
+    albuquerque_fall_equinox = SolarLocation(
+                latitude = 35.0853,
+                longitude = -106.6056,
+                elevation = 1.619, # Terrain elevation km
+                altitude = 20, # km
+                year = 2016,
+                month = 9,
+                day = 22,
+                zone = -7, # Time zone relative to GMT
+                name = 'albuquerque_fall_equinox'
+                )    
+    gabon_winter_solstice = SolarLocation(
+                latitude = 0.4162,
+                longitude = 9.4673,
+                elevation = 0, # Terrain elevation km
+                altitude = 25, # km
+                year = 2016,
+                month = 12,
+                day = 21,
+                zone = 1, # Time zone relative to GMT
+                name = 'gabon_winter_solstice'
+                )
 
 def loadSmartsData(lat=35.0853,lon=-106.6056,elevation=1.609, altitude=25, year=2016,
               month=12, day=21, zone=-7):
