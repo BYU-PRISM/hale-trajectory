@@ -35,15 +35,11 @@ Settings for the optimization, aircraft and mission are stored in a settings obj
 
 ### Viewing Dashboard
 
-Explain what these tests test and why
-
-```
-Give an example
-```
+To use the browser-based viewing dashboard, run the dashboard.py file after starting an optimization.  Refreshing the page will update the displayed results. 
 
 ## Custom Aircraft
 
-Add additional notes about how to use a custom aircraft.
+The default aircraft used in the optimization is a large flying wing.  To use another aircraft, create a new class in the Aircraft folder that inherits the aircraft_template class.  Then override the necessary parameters and methods.  See the aquila_e216.py file for an example.
 
 ## Built With
 
@@ -52,9 +48,3 @@ Add additional notes about how to use a custom aircraft.
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
-
-## Acknowledgments
-
-* Hat tip to anyone whose code was used
-* Inspiration
-* etc
