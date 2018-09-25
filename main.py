@@ -11,6 +11,7 @@ from plotting import plot_all
 #%% Setup
 # Load configuration settings
 config = Settings()
+config.description = 'Testing'
 
 # Process configuration settings
 config = process_settings(config)

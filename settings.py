@@ -5,7 +5,7 @@ from pydoc import locate
 import sys
 
 from utilities import Param
-from solar import loadSmartsData
+from solar import loadSmartsData, SolarLocations
 
 class Settings:
     
@@ -63,6 +63,9 @@ class Settings:
         self.max_iterations = 3000
         self.server = 'https://byu.apmonitor.com'
         self.linear_solver = 'ma57'
+        
+        # State Machine
+        self.use_state_machine = True
         
         # Output folder label
         self.results_folder = ''
@@ -143,8 +146,8 @@ def process_settings(config):
     # Convert timeshift from time to timesteps
     config.time_shift_steps = int(np.round(time_shift/time_step))
     
-    # Map aircraft solar panel efficiency to solar
-    
+    # Disable state-machine for first run.  This lets us get the circular orbit also
+    config.sm_active = False
     
     return config
 

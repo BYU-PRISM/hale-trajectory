@@ -10,6 +10,7 @@ from scipy.integrate import odeint
 from scipy.optimize import minimize
 
 from dynamics import uavDynamics
+import state_setting
 
 def circular_orbit(config):
     '''
@@ -24,11 +25,18 @@ def circular_orbit(config):
     # Initial guesses for thrust (N), angle of attack (rad), and bank angle (rad)
     x0 = [config.aircraft.tp.ss_initial_guess,
           config.aircraft.alpha.ss_initial_guess,
-          config.aircraft.phi.ss_initial_guess] # Note: Removed an absolute value here which could have unintended consequences
+          config.aircraft.phi.ss_initial_guess] 
     
     solData, MV, t = integrate_steady_state(config,x0)
     
     config = process_steady_state(config,solData,MV,t)
+    
+    # Compute needed values for state machine if enabled and integrate again to get state machine trajectory
+    if config.use_state_machine:
+        config = prep_state_machine(config,x0)
+        config.sm_active = True
+        solData, MV, t = integrate_steady_state(config,x0)
+        config = process_steady_state(config,solData,MV,t)
     
     # Print timing results
     end = tm.time()
@@ -158,13 +166,98 @@ def process_steady_state(config,solData,MV,t):
     simDataOut = solData[['time', 'tp', 'phi', 'theta', 'alpha', 'gamma', 'psi', 'v', 'x', 'y', 'h', 'dist', 'te', 'e_batt', 'e_batt_max', 'p_bat', 'p_n', 'p_solar', 'panel_efficiency',
                           'd', 'cd', 'cl', 'rho', 're', 'm', 'nh', 'nv', 'nu_prop', 't', 'flux', 'g_sol', 'mu_solar', 'azimuth', 'zenith', 'sn1', 'sn2', 'sn3']]
     
-    filenameSim = os.path.join(config.results_folder,'ss_results_' + str(time_stamp) + '.xlsx')
+    if config.sm_active == True:
+        filenameSim = os.path.join(config.results_folder,'sm_results_' + str(time_stamp) + '.xlsx')
+    else:
+        filenameSim = os.path.join(config.results_folder,'ss_results_' + str(time_stamp) + '.xlsx')
+        # Update initial values for optimization in config file to be updated in model file
+        config.aircraft.tp.initial_value = float(simDataOut['tp'][0])
+        config.aircraft.alpha.initial_value = float(simDataOut['alpha'][0])
+        config.aircraft.phi.initial_value = float(simDataOut['phi'][0])
+        config.aircraft.v.initial_value = float(simDataOut['v'][0])
+        
     simDataOut.to_excel(filenameSim, index=False)
     
-    # Update initial values for optimization in config file to be updated in model file
-    config.aircraft.tp.initial_value = float(simDataOut['tp'][0])
-    config.aircraft.alpha.initial_value = float(simDataOut['alpha'][0])
-    config.aircraft.phi.initial_value = float(simDataOut['phi'][0])
-    config.aircraft.v.initial_value = float(simDataOut['v'][0])
     
     return config
+
+def prep_state_machine(config,x0):
+    '''
+    Computes the necessary input values for the state machine trajectory with altitude
+    '''
+    # Initialize state machine
+    state_setting.init()
+    
+    hrange = np.arange(config.h.min-1000,config.h.max+1000,250)
+    
+    # Compute MV values for state machine
+    print('{:%H:%M:%S}'.format(datetime.datetime.now()) + ' Making State Machine MV list')
+    
+    # Level Flight values
+    Tplist = []
+    alphalist = []
+    philist = []
+    hlist = []
+    vlist = []
+    config.aircraft.gamma.mode = 'level'
+    x_guess = x0.copy()
+    for h in hrange:
+        vmin,Tpmin,alphamin,phimin,clmin,pmin = findSteadyState(x_guess,h,config)
+        hlist.append(h)
+        alphalist.append(alphamin)
+        philist.append(phimin)
+        Tplist.append(Tpmin)
+        vlist.append(vmin)
+        x_guess = [Tpmin,alphamin,phimin]
+    config.hlist_level = hlist
+    config.Tplist_level = Tplist
+    config.philist_level = philist
+    config.alphalist_level = alphalist
+    
+    # Compute zero power glide angles for descent
+    g = 9.80665 # Gravity (m/s**2)
+    W = config.aircraft.mass_total.value*g
+    config.gammalist_down = -np.arcsin(np.array(Tplist)/np.array(W))*0.999
+    
+    # Climbing values
+    Tplist = []
+    alphalist = []
+    philist = []
+    hlist = []
+    vlist = []
+    config.aircraft.gamma.mode = 'up'
+    x_guess = x0.copy()
+    for h in hrange:
+        vmin,Tpmin,alphamin,phimin,clmin,pmin = findSteadyState(x_guess,h,config)
+        hlist.append(h)
+        alphalist.append(alphamin)
+        philist.append(phimin)
+        Tplist.append(Tpmin)
+        vlist.append(vmin)
+        x_guess = [Tpmin,alphamin,phimin]
+    config.hlist_up = hlist
+    config.Tplist_up = Tplist
+    config.philist_up = philist
+    config.alphalist_up = alphalist
+    
+    # Descending values
+    Tplist = []
+    alphalist = []
+    philist = []
+    hlist = []
+    config.aircraft.gamma.mode = 'down'
+    x_guess = x0.copy()
+    for h in hrange:
+        vmin,Tpmin,alphamin,phimin,clmin,pmin = findSteadyState(x_guess,h,config)
+        hlist.append(h)
+        alphalist.append(alphamin)
+        philist.append(phimin)
+        Tplist.append(Tpmin)
+        x_guess = [Tpmin,alphamin,phimin]
+    config.hlist_down = hlist
+    config.Tplist_down = Tplist
+    config.philist_down = philist
+    config.alphalist_down = alphalist
+    
+    return config
+    

@@ -2,6 +2,7 @@ from __future__ import division
 import numpy as np
 from numpy import pi, sqrt, cos, sin, exp, tan
 from solar import solarFlux
+import state_setting as st
 
 def uavDynamics(a1,a2,a3,h_0,v_0,config,mode):
     '''
@@ -21,7 +22,9 @@ def uavDynamics(a1,a2,a3,h_0,v_0,config,mode):
     cl = uavDynamicsWrapper(x_eq,[],[],h_0,v_0,smartsData,config,4)
     '''
     
-    config = config
+    # Initialize state machine if enabled
+    if config.sm_active:
+        state = st.state
     
     ## Process Inputs
     if(mode==1):
@@ -36,6 +39,37 @@ def uavDynamics(a1,a2,a3,h_0,v_0,config,mode):
         # Load MVs
         Tp_0, alpha_0, phi_0 = MV
         
+        # State Machine
+        if config.sm_active:
+            E_batmax = config.aircraft.battery_max.value
+            
+            # Determine state
+            if(E_Batt>=E_batmax and state==0):
+                state = 1
+            elif(state==1 and (h>=config.h.max or (h>config.h.min+100 and E_Batt<=E_batmax))):
+                state = 2
+            elif(state==2 and  E_Batt<=E_batmax*0.99):
+                state = 3
+            elif(state==3 and h<=config.h.min):
+                state = 4
+            # Save state for next iteration
+            st.state = state
+            
+            # Set gamma based on current state
+            if(state==1):
+                Tp_0 = np.interp(h,config.hlist_up,config.Tplist_up)
+                alpha_0 = np.interp(h,config.hlist_up,config.alphalist_up)
+                phi_0 = np.interp(h,config.hlist_up,config.philist_up)
+            elif(state==3):
+                Tp_0 = np.interp(h,config.hlist_down,config.Tplist_down)
+                alpha_0 = np.interp(h,config.hlist_down,config.alphalist_down)
+                phi_0 = np.interp(h,config.hlist_down,config.philist_down)
+            else:
+                Tp_0 = np.interp(h,config.hlist_level,config.Tplist_level)
+                alpha_0 = np.interp(h,config.hlist_level,config.alphalist_level)
+                phi_0 = np.interp(h,config.hlist_level,config.philist_level)
+                
+        
     if(mode==2 or mode==3 or mode==4):
         # Root Finding, Power
         # In the root finding case, MV is the initial guesses.  In the Power
@@ -47,7 +81,6 @@ def uavDynamics(a1,a2,a3,h_0,v_0,config,mode):
         # Load SVs
         v = v_0
         h = h_0
-        gamma = config.aircraft.gamma.level
         psi = config.aircraft.psi.initial_value
         initial_SOC = config.aircraft.battery_initial_SOC.value
         E_d = config.aircraft.battery_energy_density.value # Battery energy density (W*hr/kg) (FB)
@@ -57,6 +90,17 @@ def uavDynamics(a1,a2,a3,h_0,v_0,config,mode):
         x = config.x.initial_value
         y = config.y.initial_value
         
+        # State machine
+        if config.sm_active:
+            if config.aircraft.gamma.mode == 'level':
+                gamma = config.aircraft.gamma.level
+            elif config.aircraft.gamma.mode == 'up':
+                gamma = config.aircraft.gamma.up
+            elif config.aircraft.gamma.mode == 'down':
+                gamma = np.interp(h,config.hlist_level,config.gammalist_down)
+        else:
+            gamma = config.aircraft.gamma.level
+            
     if(mode==5):
         # Output all other variables
         SV = a1
@@ -66,7 +110,36 @@ def uavDynamics(a1,a2,a3,h_0,v_0,config,mode):
         v,gamma,psi,h,x,y,E_Batt,t = SV
         # Load MVs
         Tp_0, alpha_0, phi_0 = MV
-        pass
+        
+        # State Machine
+        if config.sm_active:
+            E_batmax = config.aircraft.battery_max.value
+            
+            # Determine state
+            if(E_Batt>=E_batmax and state==0):
+                state = 1
+            elif(state==1 and (h>=config.h.max or (h>config.h.min+100 and E_Batt<=E_batmax))):
+                state = 2
+            elif(state==2 and  E_Batt<=E_batmax*0.99):
+                state = 3
+            elif(state==3 and h<=config.h.min):
+                state = 4
+            # Save state for next iteration
+            st.state = state
+            
+            # Set gamma based on current state
+            if(state==1):
+                Tp_0 = np.interp(h,config.hlist_up,config.Tplist_up)
+                alpha_0 = np.interp(h,config.hlist_up,config.alphalist_up)
+                phi_0 = np.interp(h,config.hlist_up,config.philist_up)
+            elif(state==3):
+                Tp_0 = np.interp(h,config.hlist_down,config.Tplist_down)
+                alpha_0 = np.interp(h,config.hlist_down,config.alphalist_down)
+                phi_0 = np.interp(h,config.hlist_down,config.philist_down)
+            else:
+                Tp_0 = np.interp(h,config.hlist_level,config.Tplist_level)
+                alpha_0 = np.interp(h,config.hlist_level,config.alphalist_level)
+                phi_0 = np.interp(h,config.hlist_level,config.philist_level)
         
     ## Run Model
     m = model(t,v,gamma,psi,h,x,y,E_Batt,Tp_0,alpha_0,phi_0,config,mode)

@@ -55,6 +55,13 @@ def load_pickle(filename):
     obj = pickle.load(open(filename,'rb'))
     return obj
 
+def init_state():
+    '''
+    Helper function for state machine
+    '''
+    global state
+    state = 0
+
 class SolarLocation:
     def __init__(self,latitude,longitude,elevation,altitude,year,month,day,zone,name):
         self.latitude = latitude
