@@ -2,7 +2,6 @@
 import numpy as np
 import numbers
 from utilities import Param, Var
-import yaml
 
 class Aircraft_Template:
     
@@ -37,7 +36,7 @@ class Aircraft_Template:
                     min = float(np.radians(-5)),
                     up = 0.02,
                     level = 0,
-                    down = -0.012,
+                    down = -0.02,
                     mode = 'level',
                     units = 'radians',
                     description = 'flight path angle (pitch)'

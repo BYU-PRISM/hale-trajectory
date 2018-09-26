@@ -7,7 +7,7 @@ import pandas as pd
 import os
 import sys
 from scipy.integrate import odeint
-from scipy.optimize import minimize
+from scipy.optimize import minimize, basinhopping
 
 from dynamics import uavDynamics
 import state_setting
@@ -33,8 +33,8 @@ def circular_orbit(config):
     
     # Compute needed values for state machine if enabled and integrate again to get state machine trajectory
     if config.use_state_machine:
-        config = prep_state_machine(config,x0)
         config.sm_active = True
+        config = prep_state_machine(config,x0)
         solData, MV, t = integrate_steady_state(config,x0)
         config = process_steady_state(config,solData,MV,t)
     
@@ -57,7 +57,7 @@ def findSteadyState(x0,h_0,config):
     bounds = [(config.aircraft.tp.min,config.aircraft.tp.max),
                (config.aircraft.phi.min,config.aircraft.phi.max),
                (config.aircraft.alpha.min,config.aircraft.alpha.max),
-               (0,100)]
+               (20,100)]
     
     # Find dynamic equlibrium
     x0v0 = np.r_[x0,v_0]
@@ -67,11 +67,17 @@ def findSteadyState(x0,h_0,config):
                    bounds = bounds,
                    constraints=cons,
                    method='SLSQP',
-                   options={'disp':True,'eps':1e-8,'ftol':1e-8})
+                   tol=1e-8,
+                   options={'disp':True,'eps':1e-8,'ftol':1e-8,'maxiter':5000})
 
     if(sol.success==False):
-        print('Could not find minimum velocity')
-        sys.exit()
+        print('Could not find minimum velocity. Trying basinhopping')
+        options={'maxiter':5000}
+        minimizer_kwargs = {"method": "SLSQP","args":(h_0,config),"bounds":bounds,"constraints":cons,"options":options}
+        sol = basinhopping(ss_objective, x0v0, minimizer_kwargs=minimizer_kwargs, niter=2000, niter_success=20)
+        if(sol.lowest_optimization_result.success==False):
+            print('Could not find minimum velocity again. Stopping')
+            sys.exit()
     Tpmin = sol.x[0]
     alphamin = sol.x[1]
     phimin = sol.x[2]
@@ -156,9 +162,9 @@ def process_steady_state(config,solData,MV,t):
     
     # Add in time and MVs
     solData['time'] = solData['t'] - config.start_time.value*3600 # Included in config file
-    solData['tp'] = MV[0]
-    solData['alpha'] = MV[1]
-    solData['phi'] = MV[2]
+#    solData['tp'] = MV[0]
+#    solData['alpha'] = MV[1]
+#    solData['phi'] = MV[2]
     solData['e_batt_max'] = config.aircraft.battery_max.value
     
     # Save out steady state solution
@@ -167,6 +173,7 @@ def process_steady_state(config,solData,MV,t):
                           'd', 'cd', 'cl', 'rho', 're', 'm', 'nh', 'nv', 'nu_prop', 't', 'flux', 'g_sol', 'mu_solar', 'azimuth', 'zenith', 'sn1', 'sn2', 'sn3']]
     
     if config.sm_active == True:
+        simDataOut.loc['state'] = solData['state']
         filenameSim = os.path.join(config.results_folder,'sm_results_' + str(time_stamp) + '.xlsx')
     else:
         filenameSim = os.path.join(config.results_folder,'ss_results_' + str(time_stamp) + '.xlsx')
@@ -202,6 +209,7 @@ def prep_state_machine(config,x0):
     config.aircraft.gamma.mode = 'level'
     x_guess = x0.copy()
     for h in hrange:
+        print('Level ' + str(h))
         vmin,Tpmin,alphamin,phimin,clmin,pmin = findSteadyState(x_guess,h,config)
         hlist.append(h)
         alphalist.append(alphamin)
@@ -228,6 +236,7 @@ def prep_state_machine(config,x0):
     config.aircraft.gamma.mode = 'up'
     x_guess = x0.copy()
     for h in hrange:
+        print('Up ' + str(h))
         vmin,Tpmin,alphamin,phimin,clmin,pmin = findSteadyState(x_guess,h,config)
         hlist.append(h)
         alphalist.append(alphamin)
@@ -248,6 +257,7 @@ def prep_state_machine(config,x0):
     config.aircraft.gamma.mode = 'down'
     x_guess = x0.copy()
     for h in hrange:
+        print('Down ' + str(h))
         vmin,Tpmin,alphamin,phimin,clmin,pmin = findSteadyState(x_guess,h,config)
         hlist.append(h)
         alphalist.append(alphamin)

@@ -35,20 +35,26 @@ def uavDynamics(a1,a2,a3,h_0,v_0,config,mode):
         t = a2
         MV = a3
         # Load SVs
-        v,gamma,psi,h,x,y,E_Batt = SV
+        v,gamma,psi,h,x,y,e_batt = SV
         # Load MVs
         Tp_0, alpha_0, phi_0 = MV
         
         # State Machine
         if config.sm_active:
-            E_batmax = config.aircraft.battery_max.value
+            e_batt_max = config.aircraft.battery_max.value
             
+#            print('Stage 1')
+#            print(e_batt)
+#            print(e_batt_max)
+#            print(h)
+#            print(state)
+#            
             # Determine state
-            if(E_Batt>=E_batmax and state==0):
+            if(e_batt>=e_batt_max and state==0):
                 state = 1
-            elif(state==1 and (h>=config.h.max or (h>config.h.min+100 and E_Batt<=E_batmax))):
+            elif(state==1 and (h>=config.h.max or (h>config.h.min+100 and e_batt<=e_batt_max))):
                 state = 2
-            elif(state==2 and  E_Batt<=E_batmax*0.99):
+            elif(state==2 and  e_batt<=e_batt_max*0.99):
                 state = 3
             elif(state==3 and h<=config.h.min):
                 state = 4
@@ -85,8 +91,8 @@ def uavDynamics(a1,a2,a3,h_0,v_0,config,mode):
         initial_SOC = config.aircraft.battery_initial_SOC.value
         E_d = config.aircraft.battery_energy_density.value # Battery energy density (W*hr/kg) (FB)
         m_battery = config.aircraft.mass_battery.value # Battery mass
-        E_batmax = m_battery*E_d*3.6/1000.0 # Max energy stored in battery (MJ)
-        E_Batt = E_batmax*initial_SOC # Initial Battery Charge
+        e_batt_max = m_battery*E_d*3.6/1000.0 # Max energy stored in battery (MJ)
+        e_batt = e_batt_max*initial_SOC # Initial Battery Charge
         x = config.x.initial_value
         y = config.y.initial_value
         
@@ -97,7 +103,8 @@ def uavDynamics(a1,a2,a3,h_0,v_0,config,mode):
             elif config.aircraft.gamma.mode == 'up':
                 gamma = config.aircraft.gamma.up
             elif config.aircraft.gamma.mode == 'down':
-                gamma = np.interp(h,config.hlist_level,config.gammalist_down)
+#                gamma = np.interp(h,config.hlist_down,config.gammalist_down)
+                gamma = config.aircraft.gamma.down
         else:
             gamma = config.aircraft.gamma.level
             
@@ -107,20 +114,26 @@ def uavDynamics(a1,a2,a3,h_0,v_0,config,mode):
 #        t = a2
         MV = a3
         # Load SVs
-        v,gamma,psi,h,x,y,E_Batt,t = SV
+        v,gamma,psi,h,x,y,e_batt,t = SV
         # Load MVs
         Tp_0, alpha_0, phi_0 = MV
         
         # State Machine
         if config.sm_active:
-            E_batmax = config.aircraft.battery_max.value
+            e_batt_max = config.aircraft.battery_max.value
+            
+#            print('Stage 2')
+#            print(e_batt)
+#            print(e_batt_max)
+#            print(h)
+#            print(state)
             
             # Determine state
-            if(E_Batt>=E_batmax and state==0):
+            if(e_batt>=e_batt_max and state==0):
                 state = 1
-            elif(state==1 and (h>=config.h.max or (h>config.h.min+100 and E_Batt<=E_batmax))):
+            elif(state==1 and (h>=config.h.max or (h>config.h.min+100 and e_batt<=e_batt_max))):
                 state = 2
-            elif(state==2 and  E_Batt<=E_batmax*0.99):
+            elif(state==2 and  e_batt<=e_batt_max*0.99):
                 state = 3
             elif(state==3 and h<=config.h.min):
                 state = 4
@@ -142,7 +155,7 @@ def uavDynamics(a1,a2,a3,h_0,v_0,config,mode):
                 phi_0 = np.interp(h,config.hlist_level,config.philist_level)
         
     ## Run Model
-    m = model(t,v,gamma,psi,h,x,y,E_Batt,Tp_0,alpha_0,phi_0,config,mode)
+    m = model(t,v,gamma,psi,h,x,y,e_batt,Tp_0,alpha_0,phi_0,config,mode)
         
     ## Process Outputs
     if(mode==1):
@@ -154,7 +167,7 @@ def uavDynamics(a1,a2,a3,h_0,v_0,config,mode):
          m['dh_dt'],
          m['dx_dt'],
          m['dy_dt'],
-         m['dE_Batt_dt']
+         m['de_batt_dt']
          ]
         
     if(mode==2):
@@ -176,11 +189,13 @@ def uavDynamics(a1,a2,a3,h_0,v_0,config,mode):
         
     if(mode==5):
         # Output all other variables
+        if config.sm_active:
+            m['state'] = state
         output = m
         
     return output
 
-def model(t,v,gamma,psi,h,x,y,E_batt,Tp_0,alpha_0,phi_0,config,mode):
+def model(t,v,gamma,psi,h,x,y,e_batt,Tp_0,alpha_0,phi_0,config,mode):
     '''
     Inputs
     
@@ -214,7 +229,7 @@ def model(t,v,gamma,psi,h,x,y,E_batt,Tp_0,alpha_0,phi_0,config,mode):
     # Power
     e_motor = config.aircraft.motor_efficiency.value # 0.95 # Efficiency of motor
     P_payload = config.aircraft.power_for_payload.value # 250.0 # Power for payload (W)
-    E_batmax = m_battery*E_d*3.6/1000.0 # Max energy stored in battery (MJ)
+    e_batt_max = m_battery*E_d*3.6/1000.0 # Max energy stored in battery (MJ)
     
     # Manipulated variables
     Tp = Tp_0 #3.171 # 48.4 # Thrust (N) (function input)
@@ -252,11 +267,18 @@ def model(t,v,gamma,psi,h,x,y,E_batt,Tp_0,alpha_0,phi_0,config,mode):
     
     ### Propeller Max Theoretical Efficiency
     Adisk = pi * R_prop**2 # Area of disk
-    e_prop = 2.0 / (1.0 + ( Tp / (Adisk * v**2.0 * rho/2.0) + 1.0 )**0.5)
-    nu_prop = e_prop * e_motor
+    if v>0:
+        e_prop = 2.0 / (1.0 + ( Tp / (Adisk * v**2.0 * rho/2.0) + 1.0 )**0.5)
+        nu_prop = e_prop * e_motor
+    else:
+        e_prop = 0
+        nu_prop = 0
     
     #### Power
-    P_N = P_payload + v*Tp/nu_prop # Power Needed by Aircraft
+    if nu_prop > 0:
+        P_N = P_payload + v*Tp/nu_prop # Power Needed by Aircraft
+    else:
+        P_N = 999999999 # Big number
     
     if(mode==1 or mode==5):
         solar_data = solarFlux(config.solar.smartsData, t/3600.0, phi,theta, psi)
@@ -287,26 +309,36 @@ def model(t,v,gamma,psi,h,x,y,E_batt,Tp_0,alpha_0,phi_0,config,mode):
     
     # Flight Dynamics
     dv_dt = ((Tp-D)/(m*g)-sin(gamma))*g
-    dgamma_dt = g/v*(nv-cos(gamma))
-    dpsi_dt = g/v*(nh/cos(gamma))
+    if v == 0:
+        dpsi_dt = 99999999 # Just set this to a big number
+        dgamma_dt = 99999999
+    else:
+        dpsi_dt = g/v*(nh/cos(gamma))
+        dgamma_dt = g/v*(nv-cos(gamma))
     dh_dt = v*sin(gamma)
     dx_dt = v*cos(psi)*cos(gamma)
     dy_dt = v*sin(psi)*cos(gamma)
     dist = (sqrt(x**2+y**2))
-    radius = v**2/(g*tan(phi))# Flight path radius
+    if phi == 0:
+        radius = 99999999 # Just set this to a big number
+    else:
+        radius = v**2/(g*tan(phi))# Flight path radius
     
     radius_max = config.x.max # 3000 (m)
     
     # Power
     P_bat = P_solar - P_N # Power used to charge or discharge battery (W)
-    dE_Batt_dt = P_bat*1e-6 # (Convert to MJ)
+    de_batt_dt = P_bat*1e-6 # (Convert to MJ)
+    # Check for max battery and cut off
+    if(e_batt >= e_batt_max and de_batt_dt > 0):
+        de_batt_dt = 0
     h_0 = config.h.initial_value
-    TE = E_batt + m*g*(h-h_0)*1e-6
+    TE = e_batt + m*g*(h-h_0)*1e-6
     
-    # Clip d_E_batt at maximum battery
-    bat_switch = 1/(1+exp(-10*(E_batmax - E_batt)))
-    if(dE_Batt_dt>0):
-        dE_Batt_dt = dE_Batt_dt * bat_switch
+    # Clip d_e_batt at maximum battery
+    bat_switch = 1/(1+exp(-10*(e_batt_max - e_batt)))
+    if(de_batt_dt>0):
+        de_batt_dt = de_batt_dt * bat_switch
     
     # Collect model outputs into dictionary
     model_output = {"dv_dt":dv_dt,
@@ -315,7 +347,7 @@ def model(t,v,gamma,psi,h,x,y,E_batt,Tp_0,alpha_0,phi_0,config,mode):
                      "dh_dt":dh_dt,
                      "dx_dt":dx_dt,
                      "dy_dt":dy_dt,
-                     "dE_Batt_dt":dE_Batt_dt,
+                     "de_batt_dt":de_batt_dt,
                      "radius_const":radius-radius_max,
                      "P_N":P_N,
                      'cl':cl,
@@ -344,6 +376,9 @@ def model(t,v,gamma,psi,h,x,y,E_batt,Tp_0,alpha_0,phi_0,config,mode):
                      'theta':theta,
                      'te':TE,
                      're':Re,
-                     'mu':mu}
+                     'mu':mu,
+                     'tp':Tp,
+                     'phi':phi,
+                     'alpha':alpha}
     
     return model_output

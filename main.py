@@ -7,11 +7,13 @@ from define_model import define_model
 from optimize import optimize_trajectory
 from utilities import save_config
 from plotting import plot_all
+from solar import SolarLocations
 
 #%% Setup
 # Load configuration settings
 config = Settings()
-config.description = 'Testing'
+config.solar = SolarLocations.albuquerque_summer_solstice
+config.description = 'Test SM Summer'
 
 # Process configuration settings
 config = process_settings(config)
