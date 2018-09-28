@@ -153,19 +153,19 @@ def optimize_trajectory(m,config):
                 
             # Adjust settings for progressive re-solves
             if(resolve==0 and i > 250):
-                m.alpha.dcost = config['trajectory']['alpha']['dcost']
-                m.rpm.dcost = config['trajectory']['rpm']['dcost']
-                m.phi.dcost = config['trajectory']['phi']['dcost']
+                m.alpha.dcost = config.aircraft.alpha.dcost
+                m.tp.dcost = config.aircraft.tp.dcost
+                m.phi.dcost = config.aircraft.phi.dcost
                 m.options.nodes = 2
             elif(resolve==1):
-                m.alpha.dcost = config['trajectory']['alpha']['dcost']*1.3
-                m.rpm.dcost = config['trajectory']['rpm']['dcost']*1.3
-                m.phi.dcost = config['trajectory']['phi']['dcost']*1.3
+                m.alpha.dcost = config.aircraft.alpha.dcost*1.3
+                m.tp.dcost = config.aircraft.tp.dcost*1.3
+                m.phi.dcost = config.aircraft.phi.dcost*1.3
                 m.options.nodes = 2
             elif(resolve==2):
-                m.alpha.dcost = config['trajectory']['alpha']['dcost']*1.5
-                m.rpm.dcost = config['trajectory']['rpm']['dcost']*1.5
-                m.phi.dcost = config['trajectory']['phi']['dcost']*1.5
+                m.alpha.dcost = config.aircraft.alpha.dcost*1.5
+                m.tp.dcost = config.aircraft.tp.dcost*1.5
+                m.phi.dcost = config.aircraft.phi.dcost*1.5
                 m.options.nodes = 3
             
             # Optimize over the solution horizon

@@ -44,7 +44,7 @@ class Settings:
         
         # Aircraft settings
         # Aircraft data will be loaded in the process_settings command based on this name
-        self.aircraft_name = 'aquila_e216' # Must match filename in Aircraft folder
+        self.aircraft_name = 'wing_e216' # Must match filename in Aircraft folder
         
         # Optimization settings
         self.time_step = Param(
@@ -65,7 +65,7 @@ class Settings:
         self.linear_solver = 'ma57'
         
         # State Machine
-        self.use_state_machine = True
+        self.use_state_machine = False
         
         # Output folder label
         self.results_folder = ''

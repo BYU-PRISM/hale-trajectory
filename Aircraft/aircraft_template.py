@@ -2,6 +2,8 @@
 import numpy as np
 import numbers
 from utilities import Param, Var
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 class Aircraft_Template:
     
@@ -129,6 +131,27 @@ class Aircraft_Template:
         else:
             efficiency = eta*(1-beta*(T_11-Tref+(T_noct-20)*G_sol/G_noct)+gamma*m.log10(G_sol+0.01))
         return efficiency
+    
+    def plot_aero(self,config):
+        # Lift
+        x = np.degrees(np.linspace(config.aircraft.alpha.min,config.aircraft.alpha.max))
+        y = np.linspace(200000,500000)
+        X, Y = np.meshgrid(x, y)
+        x = X.ravel()
+        y = Y.ravel()
+        CL_fit = np.zeros(len(x))
+        CD_fit = np.zeros(len(x))
+        for i in range(len(CL_fit)):
+            CL_fit[i] = self.CL(x[i], y[i])
+            CD_fit[i] = self.CD(x[i], y[i])
+        fig = plt.figure()
+        ax = fig.add_subplot(111,projection='3d')
+        ax.scatter(x,y,CL_fit)
+        plt.title('CL')
+        fig = plt.figure()
+        ax = fig.add_subplot(111,projection='3d')
+        ax.scatter(x,y,CD_fit)
+        plt.title('CD')
         
 if __name__=='__main__':
     x = Aircraft_Template()

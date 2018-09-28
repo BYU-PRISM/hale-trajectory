@@ -309,7 +309,7 @@ def model(t,v,gamma,psi,h,x,y,e_batt,Tp_0,alpha_0,phi_0,config,mode):
     
     # Flight Dynamics
     dv_dt = ((Tp-D)/(m*g)-sin(gamma))*g
-    if v == 0:
+    if v <= 0:
         dpsi_dt = 99999999 # Just set this to a big number
         dgamma_dt = 99999999
     else:
