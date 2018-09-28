@@ -17,7 +17,7 @@ The project requires that the following Python libraries be installed in additio
 ```
 pip install gekko jsonpickle
 ```
-If you would like to use the results viewing dashboard, you will also need to install [Dash](https://plot.ly/products/dash/).
+If you would like to use the results viewing dashboard locally, you will also need to install [Dash](https://plot.ly/products/dash/).
 
 ```
 pip install dash==0.27.0  # The core dash backend
