@@ -1,6 +1,6 @@
 # High-Altitude Long-Endurance Aircraft Trajectory Optimization
 
-This repository contains the code used to generate the results in the paper "Dynamic Optimization of High-Altitude Solar Aircraft Trajectories Under Station-Keeping Constraints".
+This repository contains the code used to generate the results in the paper "Dynamic Optimization of High-Altitude Solar Aircraft Trajectories Under Station-Keeping Constraints".  Results from the paper can also be viewed on an [online dashboard](http://dashboard.apmonitor.com/).
 
 The code produces energy optimal trajectories for solar powered HALE aircraft using the [GEKKO Dynamic Optimization Suite](https://gekko.readthedocs.io/en/latest/#).
 
