@@ -41,7 +41,7 @@ To use the browser-based viewing dashboard, run the dashboard.py file after star
 
 ## Custom Aircraft
 
-The default aircraft used in the optimization is a large flying wing.  To use another aircraft, create a new class in the Aircraft folder that inherits the aircraft_template class.  Then override the necessary parameters and methods.  See the aquila_e216.py file for an example.
+The default aircraft used in the optimization is a large flying wing.  To use another aircraft, create a new class in the Aircraft folder that inherits the aircraft_template class.  Then override the necessary parameters and methods.  See the wing_e216.py file for an example.
 
 ## Custom Date/Location
 
