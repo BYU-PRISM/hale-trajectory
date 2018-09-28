@@ -4,6 +4,8 @@ This repository contains the code used to generate the results in the paper "Dyn
 
 The code produces energy optimal trajectories for solar powered HALE aircraft using the [GEKKO Dynamic Optimization Suite](https://gekko.readthedocs.io/en/latest/#).
 
+![Optimized Path](Images/3D_path_Winter.png?raw=true "Optimized Flight Path")
+
 ## Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine.
