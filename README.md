@@ -8,8 +8,6 @@ The code produces energy optimal trajectories for solar powered HALE aircraft us
 
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine.
-
 ### Prerequisites
 
 The project requires that the following Python libraries be installed in addition to the Anaconda base set.
