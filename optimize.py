@@ -127,9 +127,12 @@ def optimize_trajectory(m,config):
                 m.alpha.value = df1['alpha'].values
                 m.gamma.value = df1['gamma'].values
                 if(config.use_wind):
-                    m.chi.value = df1['chi'].values
-                    m.v_g.value = df1['v_g'].values
-                    m.v_a.value = df1['v_a'].values
+#                    m.chi.value = df1['chi'].values
+#                    m.v_g.value = df1['v_g'].values
+#                    m.v_a.value = df1['v_a'].values
+                    m.chi.value = df1['psi'].values
+                    m.v_g.value = df1['v'].values
+                    m.v_a.value = df1['v'].values
                 else:
                     m.psi.value = df1['psi'].values
                     m.v.value = df1['v'].values
@@ -209,8 +212,8 @@ def optimize_trajectory(m,config):
                    'mu_slack', 'timestamp', 'iterations', 'objfcnval', 'successful_solution', 
                    'iteration_time', 're-solve']
         else:
-            columns = ['time', 'tp', 'phi', 'theta', 'alpha', 'beta', 'gamma', 'psi','chi', 'v_g', 'v_a', 'x', 'y', 'h', 'dx', 'dy' ,'dist', 'te', 'e_batt', 'p_bat', 'p_n', 'p_solar', 'ptotal', 'panel_efficiency',
-                   'd', 'cd', 'cl', 'rho', 'mu', 'tair', 're', 'nh', 'nv', 'nu_prop', 't', 'flux', 'g_sol', 'mu_solar', 'azimuth', 'zenith', 'sn1', 'sn2', 'sn3','w_n','w_e','w_d', 'sunset', 'mu_clipped', 
+            columns = ['time', 'tp', 'phi', 'theta', 'alpha', 'beta', 'gamma', 'psi','chi', 'v_g', 'v_a', 'x', 'y', 'h', 'dx', 'dy' ,'dist', 'te', 'e_batt', 'p_bat', 'p_n', 'p_solar', 'p_total', 'panel_efficiency',
+                   'd', 'c_d', 'cl', 'rho', 'mu', 't_air', 're', 'nh', 'nv', 'nu_prop', 't', 'flux', 'g_sol', 'mu_solar', 'azimuth', 'zenith', 'sn1', 'sn2', 'sn3','w_n','w_e','w_d', 'sunset', 'mu_clipped', 
                    'mu_slack', 'timestamp', 'iterations', 'objfcnval', 'successful_solution', 
                    'iteration_time', 're-solve']
 
