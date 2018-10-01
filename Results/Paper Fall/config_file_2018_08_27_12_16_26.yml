@@ -1,0 +1,191 @@
+aircraft:
+  airfoil_thickness_ratio: 0.11
+  aspect_ratio: 30
+  battery:
+    energy_density:
+      units: Whr/kg
+      value: 350
+    initial_state_of_charge: 0.2
+    mass:
+      units: kg
+      value: 136.7
+  ck: 1.1
+  inviscid_span_efficiency: 0.98
+  mass_payload:
+    units: kg
+    value: 25
+  mass_total:
+    units: kg
+    value: 349.7
+  motor_efficiency: 0.95
+  name: Aquila E216 New
+  power_for_internal_systems:
+    units: W
+    value: 250
+  power_for_payload:
+    units: W
+    value: 250
+  propeller_radius:
+    units: m
+    value: 2
+  roughness_factor: 1.1
+  wing_top_surface_area:
+    units: m^2
+    value: 60
+  xcrit_bottom: 1
+  xcrit_top: 0.7412
+file:
+  configuration: config_file_2018_08_27_12_16_26.yml
+  description: Fall Battery 136
+  description_full: Insert full description here
+  folder_name: hale_2018_08_27_12_16_26 - Fall Battery 136
+  model_file_template: model_template_density_climb_drag_opt_drag_solver_clean_dragsurface.apm
+  new_path: C:\Users\UAV-PRISM\Documents\Python\hale-optimization\Trajectory/Data/hale_2018_08_27_12_16_26
+    - Fall Battery 136
+  original_path: C:\Users\UAV-PRISM\Documents\Python\hale-optimization\Trajectory
+  time_stamp: '2018_08_27_12_16_26'
+optimization:
+  end_time:
+    units: hr
+    value: 29.969444444444445
+  horizon_length: 112
+  iteration_save_frequency: 1
+  linear_solver: ma57
+  max_iterations: 10000
+  server: https://byu.apmonitor.com
+  start_time:
+    units: hr
+    value: 5.969444444444444
+  status_update_frequency: 1
+  time_shift: 10
+  time_step:
+    units: s
+    value: 8
+solar:
+  albuquerque_fall_equinox:
+    altitude: 20
+    day: 22
+    elevation: 1.619
+    latitude: 35.0853
+    longitude: -106.6056
+    month: 9
+    year: 2016
+    zone: -7
+  albuquerque_spring_equinox:
+    altitude: 20
+    day: 19
+    elevation: 1.619
+    latitude: 35.0853
+    longitude: -106.6056
+    month: 3
+    year: 2016
+    zone: -7
+  albuquerque_summer_solstice:
+    altitude: 20
+    day: 20
+    elevation: 1.619
+    latitude: 35.0853
+    longitude: -106.6056
+    month: 6
+    year: 2016
+    zone: -7
+  albuquerque_winter_solstice:
+    altitude: 20
+    day: 21
+    elevation: 1.619
+    latitude: 35.0853
+    longitude: -106.6056
+    month: 12
+    year: 2016
+    zone: -7
+  gabon_winter_solstice:
+    altitude: 25
+    day: 21
+    elevation: 0
+    latitude: 0.4162
+    longitude: 9.4673
+    month: 12
+    year: 2016
+    zone: 1
+  panel_efficiency: 0.25
+  panel_efficiency_function:
+    G_noct: 0.519455027587048
+    T_noct: 20.0310337470507
+    Tref: 298.15
+    beta: 0.0021888986107182
+    eta: 0.12
+    gamma_s: 0.413220518404272
+  solar_data: albuquerque_fall_equinox
+trajectory:
+  alpha:
+    dcost: 1.4
+    description: angle of attack
+    dmax: 0.030252373701235048
+    initial_value: 0.0682650773911868
+    max: 0.2617993877991494
+    min: -0.17453292519943295
+    ss_initial_guess: 0.069
+    units: radians
+  distance_from_center:
+    initial_value: 0
+    units: m
+  gamma:
+    description: flight path angle (pitch)
+    down: -0.012
+    initial_value: 0
+    level: 0
+    max: 0.08726646259971647
+    min: -0.08726646259971647
+    mode: level
+    units: radians
+    up: 0.02
+  h:
+    initial_value: 18288
+    max: 24289
+    min: 18288
+    units: m
+  initial_direction: Clockwise
+  lift_coefficient:
+    max: 1.5
+  phi:
+    cost: 0
+    dcost: 2.0
+    description: bank angle (roll)
+    dmax: 0.021333333333333333
+    initial_value: 0.03608456320549861
+    max: 0.08726646259971647
+    min: -0.08726646259971647
+    ss_initial_guess: 0.034
+    units: degrees
+  psi:
+    description: heading angle (yaw)
+    initial_value: 0
+    units: radians
+  tp:
+    dcost: 0.002
+    description: Thrust
+    dmax: 50
+    initial_value: 74.42575260321424
+    max: 500
+    min: 0.01
+    ss_initial_guess: 75
+    units: Newtons
+  v:
+    initial_value: 32.58937029586016
+    ss_initial_guess: 33
+    units: m/s
+  x:
+    initial_value: 0
+    max: 3000
+    min: -3000
+    units: m
+  y:
+    initial_value: -3000
+    max: 3000
+    min: -3000
+    units: m
+wind:
+  use_wind: false
+  w_d: 0
+  w_e: 10
+  w_n: 0
