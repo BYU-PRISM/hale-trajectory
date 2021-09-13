@@ -1,0 +1,82 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from gekko import GEKKO
+
+# Gekko model
+m = GEKKO(remote=False)
+
+# Time points
+nt = 501                    # nt=101
+tm = np.linspace(0, 1, nt)  # tm = np.linspace(0, 100, nt)
+m.time = tm
+
+# Variables
+g = m.Const(value=9.80665)
+V = m.Const(value=200)  # velocity
+
+Xi = m.Var(value=0, lb=-2*np.pi, ub=2*np.pi)       # Heading angle  value=-np.pi dene
+x = m.Var(value=0, lb=-100000, ub=100000)      # x position
+y = m.Var(value=0, lb=-100000, ub=100000)      # y position
+
+pathx = m.Const(value=70000)  # intended distance in x direction
+pathy = m.Const(value=20000)  # intended distance in y direction
+
+p = np.zeros(nt) # final time=1
+p[-1] = 1.0
+final = m.Param(value=p)
+
+m.options.MAX_ITER = 1000000  # iteration number
+
+# Optimize Final Time
+tf = m.FV(value=1.0, lb=0.0001, ub=1000.0)
+tf.STATUS = 1
+
+# Controlled parameters
+Mu = m.MV(value=0, lb=-1, ub=1)  # solver controls bank angle
+Mu.STATUS = 1
+Mu.DCOST = 1e-3
+
+# Equations
+m.Equation(x.dt() == tf * (V * (m.cos(Xi))))  
+m.Equation(y.dt() == tf * (V * (m.sin(Xi))))  
+m.Equation(Xi.dt() == tf * (g * m.tan(Mu)) / V )
+
+m.Equation(x * final <= pathx )
+m.Equation(y * final <= pathy )
+
+# Objective Function
+w = 1e4
+m.Minimize(w * (x * final - pathx) ** 2)  # 1D part (x)
+m.Minimize(w * (pathy - y * final) ** 2)  # 2D part (y)
+#m.Minimize((x ** 2) + (y ** 2))
+
+#m.Obj(Xi * final)
+m.Obj(tf)
+
+#m.Maximize(0.2 * mass * final)  # objective function
+m.options.IMODE = 6
+#m.options.NODES = 2
+#m.options.MV_TYPE = 1
+#m.options.SOLVER = 3
+# m.open_folder() # to search for infeasibilities
+m.solve(disp=False)
+print('Final Time: ' + str(tf.value[0]))
+tm = np.linspace(0,tf.value[0],nt)
+#tm = tm * tf.value[0]
+
+fig, axs = plt.subplots(3)
+fig.suptitle('Results')
+axs[0].plot(tm, Mu.value, 'b-', LineWidth=2, label=r'$Bank$')
+axs[0].legend(loc='best')
+axs[1].plot(tm, x.value, 'r--', LineWidth=2, label=r'$x$')
+axs[1].legend(loc='best')
+axs[2].plot(tm, y.value, 'p-', LineWidth=2, label=r'$y$')
+axs[2].legend(loc='best')
+plt.xlabel('Time')
+#plt.ylabel('Value')
+plt.show()
+
+
+plt.figure()
+plt.plot(x.value, y.value)
+plt.show()
